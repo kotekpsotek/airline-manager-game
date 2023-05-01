@@ -1,0 +1,7 @@
+/* Styles which must be added to project and cannot be removed by PurgeCSS tool */
+canvas {
+    position: absolute;
+    top: 50px;
+    width: 100%;
+    height: calc(100% - 100px); 
+}
