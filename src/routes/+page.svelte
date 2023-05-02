@@ -3,10 +3,13 @@
     import { PUBLIC_MAP_API_KEY, PUBLIC_MAP_ID } from "$env/static/public";
     import { onMount } from "svelte";
     import OptionsStripe from "$lib/OptionsStripe.svelte";
+    import CreateNewAirline from "$lib/CreateNewAirline.svelte"
     import UpperStripe from "$lib/UpperStripe.svelte";
     import { Loader } from "@googlemaps/js-api-loader";
+    import { userData, type UserData } from "$lib/storages/interim";
 
-    let gameCanvas: HTMLCanvasElement;
+    /** Airline data storage and information about user */
+    let data  = userData();
 
     async function addMap() {
         // Example location
@@ -38,8 +41,29 @@
         gameCanvas = canvas; */
     }
 
+    function creatingAirlineWhenNotExistsYet() {
+        const airlineCreation = new CreateNewAirline({
+            target: document.body
+        });
+
+        // Listen for moment when user pass all data from this menu and click to "Accept and to next step" button
+        airlineCreation.$on("to-next-step", ({ detail: newGameObject }) => {
+            // Update existing (or no) game data
+            data.update(val => {
+                return {
+                    ...val,
+                    ...newGameObject
+                }
+            });
+
+            // Delete menu and redirect user to new
+            airlineCreation.$destroy();
+        });
+    }
+
     // Must be probably performed in this way because is some way durning puting it into global scope i've got an error caused by 'no "window" object'
     onMount(() => {
+        if (!$data) creatingAirlineWhenNotExistsYet();
         addMap();
     })
 </script>
