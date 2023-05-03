@@ -5,6 +5,7 @@
     import OptionsStripe from "$lib/OptionsStripe.svelte";
     import CreateNewAirline from "$lib/CreateNewAirline.svelte"
     import UpperStripe from "$lib/UpperStripe.svelte";
+    import PlanesMarket from "$lib/PlanesMarket.svelte";
     import { Loader } from "@googlemaps/js-api-loader";
     import { userData, type UserData } from "$lib/storages/interim";
 
@@ -63,8 +64,11 @@
 
     // Must be probably performed in this way because is some way durning puting it into global scope i've got an error caused by 'no "window" object'
     onMount(() => {
-        if (!$data) creatingAirlineWhenNotExistsYet();
-        addMap();
+        // if (!$data) creatingAirlineWhenNotExistsYet();
+        new PlanesMarket({
+            target: document.getElementsByClassName("map")[0]
+        });
+        // addMap();
     })
 </script>
 
