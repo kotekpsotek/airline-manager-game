@@ -78,7 +78,11 @@
 
     // Must be probably performed in this way because is some way durning puting it into global scope i've got an error caused by 'no "window" object'
     onMount(() => {
-        if (!$data) creatingAirlineWhenNotExistsYet();
+        // Load to storage data from user browswer 'localStorage' space when airline-manager data was saved into it prior
+        data.loadStorageFromUserBrowswer();
+        console.log("Loaded page", $data)
+
+        if (!($data)) creatingAirlineWhenNotExistsYet();
         // addMap();
     })
 </script>
