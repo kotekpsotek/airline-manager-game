@@ -1,10 +1,17 @@
 <script lang="ts">
+    import { createEventDispatcher } from "svelte";
     import BoeingLogo from "$lib/assets/Logos_Brands/Boeing.svg";
     import AirbusLogo from "$lib/assets/Logos_Brands/Airbus_Logo.svg";
     import ATRLogo from "$lib/assets/Logos_Brands/ATR_Logo.svg";
     import { type AirplaneBrands, PlanesList, type AirplaneModel } from "$lib/storages/planes";
     import WhetherBuyPlane from "./WhetherBuyPlane.svelte";
     import { userData as userD, type UserFleetTypeUnit } from "$lib/storages/interim";
+
+    // Event dispatcher for svelte event passing backward (to inicjalization module)
+    const dispatcher = createEventDispatcher();
+
+    /** Option using when user create it first airline to add eligable adjusted things to this menu GUI (e.g: stripe with option go to next step) */
+    export let spawnedDurningCreationOfAirline: boolean = false;
 
     /** Store which brand plane will be displaying to user by default */
     let choosenBrandOfPlanes: AirplaneBrands = "boeing";
@@ -60,10 +67,23 @@
             });
         }
     }
+
+    /** When user is creating new airline and was captured click on 'Go to next step' button located on this stripe */
+    function airlineCreationGoToNextStep(ev: Event) {
+        dispatcher("airline-creation-go-to-next-step");
+    }
 </script>
 
 <div class="planes-market">
     <div>
+        {#if spawnedDurningCreationOfAirline}
+            <div class="durning-creation-new-airline">
+                <p class="desc">Click on button when you buy all necessary planes!</p>
+                <button id="go-to-next-step" on:click={airlineCreationGoToNextStep}>
+                    Go to next step
+                </button>
+            </div>
+        {/if}
         <h1>Planes market</h1>
         <div class="choose-plane-brand">
             <button id="boeing" class:selected-brand={choosenBrandOfPlanes == "boeing"} on:click={clickOnBrand}>
@@ -252,5 +272,27 @@
     div.price-per-unit .price p.price {
         font-size: 20px;
         color: rgb(226, 198, 44);
+    }
+
+    /* Stripe displaying when user is creating new airline */
+    div.durning-creation-new-airline {
+        color: white;
+        height: 40px;
+        width: 100%;
+        padding: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: green;
+    }
+
+    div.durning-creation-new-airline button {
+        outline: none;
+        background-color: whitesmoke;
+        font-size: 15px;
+        color: rgb(26, 186, 26);
+        padding: 5px;
+        border: solid 2px rgb(26, 186, 26);
+        border-radius: 4px;
     }
 </style>

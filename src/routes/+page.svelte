@@ -58,8 +58,20 @@
             airlineCreation.$destroy();
 
             // Selecting and buying new plane/planes step
-            new PlanesMarket({
-                target: document.getElementsByClassName("map")[0]
+            const planesMarket = new PlanesMarket({
+                target: document.getElementsByClassName("map")[0],
+                props: {
+                    spawnedDurningCreationOfAirline: true
+                }
+            });
+
+            // When user bought any plane (or more then one) click on 'Go to next step' located on stripe from above menu then redirect user to next step by spawning next step menu
+            planesMarket.$on("airline-creation-go-to-next-step", () => {
+                // Redirect user to next step only when bought any (or more then one) plane
+                if ($data?.fleet.length) {
+                    // .. New menu code
+                }
+                else alert("You must buy any plane to go ahead!");
             });
         });
     }
