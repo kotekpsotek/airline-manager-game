@@ -7,10 +7,7 @@
     import UpperStripe from "$lib/UpperStripe.svelte";
     import PlanesMarket from "$lib/PlanesMarket.svelte";
     import { Loader } from "@googlemaps/js-api-loader";
-    import { userData, type UserData } from "$lib/storages/interim";
-
-    /** Airline data storage and information about user */
-    let data  = userData();
+    import { userData as data, type UserData } from "$lib/storages/interim";
 
     async function addMap() {
         // Example location
@@ -56,18 +53,20 @@
                     ...newGameObject
                 }
             });
-
-            // Delete menu and redirect user to new
+            
+            // Delete menu and redirect user to new step
             airlineCreation.$destroy();
+
+            // Selecting and buying new plane/planes step
+            new PlanesMarket({
+                target: document.getElementsByClassName("map")[0]
+            });
         });
     }
 
     // Must be probably performed in this way because is some way durning puting it into global scope i've got an error caused by 'no "window" object'
     onMount(() => {
-        // if (!$data) creatingAirlineWhenNotExistsYet();
-        new PlanesMarket({
-            target: document.getElementsByClassName("map")[0]
-        });
+        if (!$data) creatingAirlineWhenNotExistsYet();
         // addMap();
     })
 </script>
@@ -91,6 +90,7 @@
         width: 100%;
         height: 100%;
         background-color: whitesmoke;
+        position: relative;
     }
 
     div.map {

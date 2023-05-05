@@ -1,11 +1,12 @@
 <script lang="ts">
     import { UserAvatarFilled } from "carbon-icons-svelte";
+    import { userData as userD } from "$lib/storages/interim";
 </script>
 
 <div class="upper-bar">
     <button id="blank"></button> <!-- Required to create eligable place adjustment for elements -->
     <button id="account-balance" title="Account balance: 300 000$">
-        <p>300 000$</p>
+        <p>{$userD?.balance || 0} $</p>
     </button>
     <button id="account" title="Your Account">
         <UserAvatarFilled size={32}/>

@@ -2,7 +2,9 @@
     import BoeingLogo from "$lib/assets/Logos_Brands/Boeing.svg";
     import AirbusLogo from "$lib/assets/Logos_Brands/Airbus_Logo.svg";
     import ATRLogo from "$lib/assets/Logos_Brands/ATR_Logo.svg";
-    import { type AirplaneBrands, PlanesList } from "$lib/storages/planes";
+    import { type AirplaneBrands, PlanesList, type AirplaneModel } from "$lib/storages/planes";
+    import WhetherBuyPlane from "./WhetherBuyPlane.svelte";
+    import { userData as userD, type UserFleetTypeUnit } from "$lib/storages/interim";
 
     /** Store which brand plane will be displaying to user by default */
     let choosenBrandOfPlanes: AirplaneBrands = "boeing";
@@ -14,9 +16,48 @@
     }
 
     /** When user click on specific aircraft button user will be redirected to GUI of preparation aircraft to finalize operation by purchasing */
-    function choosePlaneToBuy(airplaneBrand: AirplaneBrands, airplaneModelName: string) {
+    function choosePlaneToBuy(airplaneBrand: AirplaneBrands, airplaneModelName: string, pricePerUnit: number, itteratedPlaneId: number) {
         return (ev: Event) => {
+            const planeBoughtTask = new WhetherBuyPlane({
+                target: document.getElementsByClassName("map")[0],
+                props: {
+                    airplaneBrand,
+                    airplaneModelName,
+                    pricePerUnit
+                }
+            });
 
+            // When user click on "Decline" button during first pop-up window version
+            planeBoughtTask.$on("undo-action", () => planeBoughtTask.$destroy());
+
+            // When user order some number of plane units
+            planeBoughtTask.$on("ordered-planes", async ({ detail: amountOfUnits }: { detail: number }) => {
+                const pricePerOrder = amountOfUnits * pricePerUnit;
+
+                // User can buy plane when have got enought money
+                if ($userD?.balance && pricePerOrder <= $userD?.balance) {
+                    // Remove from user balance amount of money for order
+                    $userD.balance -= pricePerOrder;
+
+                    // Add ordered planes as instant action result
+                    for (let i = 0; i < amountOfUnits; i++) {
+                        const airplaneModel = (await PlanesList.getAirplanes(choosenBrandOfPlanes))[itteratedPlaneId] as Partial<AirplaneModel>;
+                        delete airplaneModel.airplane_image; // To adjust result object shape to requirement of "UserFleetTypeUnit" type
+
+                        $userD.fleet.push({
+                            ...(airplaneModel as UserFleetTypeUnit),
+                        });
+                    }
+                    $userD = $userD; // must be performed in this way to add planes to user fleet
+
+                    // Destroy pop-up to buy new plane/planes
+                    planeBoughtTask.$destroy();
+
+                    // Inform user that he bought a plane/planes
+                    alert(`Congratulations you bought ${amountOfUnits} new planes!`);
+                }
+                else alert(`You don't have enought money on account to release order! ${$userD ? `You miss ${pricePerOrder - $userD.balance}` : ""}`.trim()); // Inform user that he haven't got enought money to release purchase
+            });
         }
     }
 </script>
@@ -39,36 +80,42 @@
             <h3>Avaiable planes:</h3>
             <div class="list">
                 {#key choosenBrandOfPlanes}
-                    {#each PlanesList.getAirplanes(choosenBrandOfPlanes) as { airplane_brand, airplane_image, airplane_model_name, airplane_specification, plane_price }}
-                        <button class="plane" on:click={choosePlaneToBuy(airplane_brand, airplane_model_name)}>
-                            <img src="/src/lib/assets/planes/{airplane_image}" alt="{airplane_model_name} image">
-                            <h4>{airplane_model_name}</h4>
-                            <table class="specification">
-                                <tr>
-                                    <th>Max speed</th>
-                                    <th>Cruise speed</th>
-                                    <th>Fuel Capacity</th>
-                                    <th>Fuel Consumption</th>
-                                    <th>Max passangers</th>
-                                    <th>Max range</th>
-                                </tr>
-                                <tr>
-                                    <td>{airplane_specification.max_speed} km/h</td>
-                                    <td>{airplane_specification.cruise_speed} km/h</td>
-                                    <td>{airplane_specification.fuel_capacity} kg</td>
-                                    <td>{airplane_specification.fuel_consumption} kg/km</td>
-                                    <td>{airplane_specification.max_passangers} </td>
-                                    <td>{airplane_specification.max_range} km</td>
-                                </tr>
-                            </table>
-                            <div class="price-per-unit">
-                                <div class="price">
-                                    <p>Price per unit</p>
-                                    <p class="price">{plane_price} $</p>
-                                </div>
-                            </div>
-                        </button>
-                    {/each}
+                    {#await PlanesList.getAirplanes(choosenBrandOfPlanes) then planes}
+                        {#if planes.length}
+                            {#each planes as { airplane_brand, airplane_image, airplane_model_name, airplane_specification, plane_price }, id}
+                                <button class="plane" on:click={choosePlaneToBuy(airplane_brand, airplane_model_name, plane_price, id)}>
+                                    <img src="/src/lib/assets/planes/{airplane_image}" alt="{airplane_model_name} image">
+                                    <h4>{airplane_model_name}</h4>
+                                    <table class="specification">
+                                        <tr>
+                                            <th>Max speed</th>
+                                            <th>Cruise speed</th>
+                                            <th>Fuel Capacity</th>
+                                            <th>Fuel Consumption</th>
+                                            <th>Max passangers</th>
+                                            <th>Max range</th>
+                                        </tr>
+                                        <tr>
+                                            <td>{airplane_specification.max_speed} km/h</td>
+                                            <td>{airplane_specification.cruise_speed} km/h</td>
+                                            <td>{airplane_specification.fuel_capacity} kg</td>
+                                            <td>{airplane_specification.fuel_consumption} kg/km</td>
+                                            <td>{airplane_specification.max_passangers} </td>
+                                            <td>{airplane_specification.max_range} km</td>
+                                        </tr>
+                                    </table>
+                                    <div class="price-per-unit">
+                                        <div class="price">
+                                            <p>Price per unit</p>
+                                            <p class="price">{new Intl.NumberFormat("us-US", { style: "currency", currency: "USD" }).format(plane_price)}</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            {/each}
+                        {:else}
+                            <p>No avaiable planes from selected brand!</p>
+                        {/if}
+                    {/await}
                 {/key}
             </div>
         </div>
@@ -98,6 +145,7 @@
         width: 100%;
         height: 100%;
         background-color: whitesmoke;
+        overflow-y: auto;
     }
     
     .planes-market > div:first-of-type {
@@ -142,6 +190,9 @@
 
     div.planes-list div.list {
         margin-top: 5px;
+        display: flex;
+        flex-direction: column;
+        row-gap: 5px;
     }
 
     button.plane {

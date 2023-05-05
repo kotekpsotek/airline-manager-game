@@ -17,6 +17,7 @@
             long: "",
             geographic_region: ""
         },
+        fleet: [],
         balance: 300_000 // start amount of money assigned to new creeated game
     }
 
