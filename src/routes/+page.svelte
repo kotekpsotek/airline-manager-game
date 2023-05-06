@@ -6,7 +6,8 @@
     import CreateNewAirline from "$lib/CreateNewAirline.svelte"
     import UpperStripe from "$lib/UpperStripe.svelte";
     import PlanesMarket from "$lib/PlanesMarket.svelte";
-    import { Loader } from "@googlemaps/js-api-loader";
+    import CreateRoute from "$lib/CreateRoute.svelte";
+    import { mapLoader } from "$lib/api";
     import { userData as data, type UserData } from "$lib/storages/interim";
 
     async function addMap() {
@@ -14,10 +15,7 @@
         const position = { lat: 52.237049, lng: 21.017532 };
 
         // Initialise auth data for Google Maps library
-        const loaded = await new Loader({
-            apiKey: PUBLIC_MAP_API_KEY,
-            version: "weekly"
-        }).load();
+        const loader = await mapLoader();
 
         // Load Google Maps Library
         const { Map } = await google.maps.importLibrary("maps") as google.maps.MapsLibrary;
@@ -80,9 +78,8 @@
     onMount(() => {
         // Load to storage data from user browswer 'localStorage' space when airline-manager data was saved into it prior
         data.loadStorageFromUserBrowswer();
-        console.log("Loaded page", $data)
-
         if (!($data)) creatingAirlineWhenNotExistsYet();
+
         // addMap();
     })
 </script>
