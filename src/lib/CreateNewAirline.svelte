@@ -3,6 +3,7 @@
     import type { UserData } from "$lib/storages/interim";
     import { Search } from "carbon-icons-svelte";
     import ScrollDownButton from "$lib/CustomElements/ScrollDownButton.svelte";
+    import { airportsAllList } from "$lib/api";
     
     /** New Game object: enrolls new game strategic datas */
     let newGame: Partial<UserData> = {
@@ -106,19 +107,8 @@
     }
 
     onMount(async () => {
-        const request = await fetch(document.URL, {
-            method: "GET"
-        });
-
-        if (request.status == 200) {
-            const responseDat = await request.json();
-            airportsList = responseDat.airports;
-            console.log(airportsList[0][8], airportsList[0])
-        } else {
-            alert("Couldn't get airports list throught server error. Try again soon!")
-            throw new Error();
-        }
-    });
+        airportsList = (await airportsAllList) as string[][];
+    }); 
 
     
 </script>
