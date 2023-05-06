@@ -1,3 +1,5 @@
+import type { UserFleetTypeUnit } from "$lib/storages/interim";
+
 export type AirplaneBrands = "boeing" | "airbus" | "atr";
 export interface AirplaneModel {
     airplane_brand: AirplaneBrands,
@@ -32,5 +34,34 @@ export class PlanesList {
 
         // Return value
         return getOnlySpecificBrandPlanes;
+    }
+    
+    /** Get data about singe airplane using it model name or when passed also it airplane mother brand. Airplane data will be returning or undefined is obtaining when plane model doesn't exists */
+    static getAirplaneDetailsByModel(airplaneModel: string, airplaneBrand?: AirplaneBrands): AirplaneModel | undefined {
+        // Founded or not airplane model
+        let result: AirplaneModel | undefined = undefined;
+
+        // Iterate over planes database to find matching with brand and model
+        for (const airplaneModelIt of PlanesList.planesList) {
+            const { airplane_brand, airplane_model_name } = airplaneModelIt;
+            if ((airplane_brand == airplaneBrand && airplane_model_name == airplaneModel) || airplaneModel == airplane_model_name) result = airplaneModelIt;
+        }
+
+        // Return result
+        return result;
+    }
+    
+    /** Calculate fuel rquirement in liters unit for route */
+    static calculateFuelRequirements(distanceKm: number, plane: AirplaneModel | UserFleetTypeUnit): number {
+        return distanceKm * plane.airplane_specification.fuel_consumption;
+    }
+
+    /** Calculate whether plane can fly to destination */
+    static whetherIsAbleToFlyThroughtDistance(distanceKm: number, plane: AirplaneModel | UserFleetTypeUnit): boolean {
+        // Calculate airplane requirement for fuel throught fly by distance
+        const fuelRequirements = PlanesList.calculateFuelRequirements(distanceKm, plane);
+
+        // Check whether plane can carry this much of fuel
+        return fuelRequirements < plane.airplane_specification.fuel_capacity;
     }
 }
