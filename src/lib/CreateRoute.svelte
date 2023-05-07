@@ -28,6 +28,9 @@
     let distanceBetweenPointsKm: number = 0; // Distance between points in kilometers 
     let durationOfTravelMins: number = 1; // duration of travel in minutes
 
+    /** Store state whether user focus on inputs to determining start or end point of each route */
+    let userFocusOnDestinationsInput: boolean = false;
+
     // Inside are data changing durning changing of route datas
     $: {
         // Obtain details about selected airplane
@@ -36,18 +39,13 @@
 
         // Check whether route depature and arrival airports are different
         routeData;
-        if ((routeData.from && routeData.to) && routeData.from.name == routeData.to.name) {
+        if ((routeData.from.name && routeData.to.name) && routeData.from.name.replaceAll("#headquarters airport", "").trim() == routeData.to.name) {
             alert("You pass same destination point as start point. These two points of each route must be differ to each other"); // show alert
             routeData = { from: { name: "", geo: { lat: 0, long: 0 } }, to: { name: "", geo: { lat: 0, long: 0 } } }; // resest route depature and arrival points
         }
 
-        // Calculate distance between points when it was passed
-        if (routeData.from.geo.lat && routeData.to.geo.lat) {
-            distanceBetweenPointsKm = Route.calculateDistanceBetweenAirports(routeData.from.geo, routeData.to.geo);
-        }
-
         // Display alert when user plane hasn't got enought range to fly as far
-        if (selectedAirplaneData && !PlanesList.whetherIsAbleToFlyThroughtDistance(distanceBetweenPointsKm, selectedAirplaneData as AirplaneModel)) {
+        if ((routeData.to.name && routeData.from.name) && selectedAirplaneData && !PlanesList.whetherIsAbleToFlyThroughtDistance(distanceBetweenPointsKm, selectedAirplaneData as AirplaneModel)) {
             distanceBetweenPointsKm = 0;
             routeData.to = {
                 name: "",
@@ -59,7 +57,7 @@
 
     /** Check whether user pass all data required to create a new route */
     const routeDetermined: () => boolean = () => {
-        return routeData.from && routeData.to && hours.start && hours.end && distanceBetweenPointsKm && PlanesList.whetherIsAbleToFlyThroughtDistance(distanceBetweenPointsKm, selectedAirplaneData as AirplaneModel) ? true : false;
+        return !userFocusOnDestinationsInput && routeData.from && routeData.to && hours.start && hours.end && distanceBetweenPointsKm && PlanesList.whetherIsAbleToFlyThroughtDistance(distanceBetweenPointsKm, selectedAirplaneData as AirplaneModel) ? true : false;
     }
 
     /** Get formated headquarters airport name for usage into GUI */
@@ -70,10 +68,19 @@
         return `${iata} (${country} ${location} ${airport_name})`;
     }
 
+    /** Focus input route determinig destination/start point input */
+    function focusInputDestination(ev: Event) {
+        // User start taking focus on this type of input
+        userFocusOnDestinationsInput = true;
+    }
+
     /** When user lost focus on one from input to pass route destination or start point */
     function blurInputDestination(inputType: "from" | "to") {
         return async (ev: Event) => {
             const { value } = (ev.currentTarget as HTMLInputElement);
+
+            // User stop taking focus on this type of inputs
+            userFocusOnDestinationsInput = false;
             
             if (value.length) {
                 const repla = value.replaceAll(/[()]|#headquarters airport|\s{2,}/gi, "").trim(); // replace values assigned from GUI side durning 'for human' formating
@@ -82,8 +89,14 @@
                 
                 // Assign cordinated to appropriate route point
                 routeData[inputType].geo = { lat, long };
+
+                // Calculate distance between two point
+                distanceBetweenPointsKm = Route.calculateDistanceBetweenAirports(routeData.from.geo, routeData.to.geo);
             } else {
                 routeData[inputType].geo = { lat: 0, long: 0 };
+
+                // Assign null distance between points = 0km
+                distanceBetweenPointsKm = 0;
             }
         }
     }
@@ -103,11 +116,11 @@
         </div>
         <div class="determining-from-to">
             <h2>Determine route start and end point</h2>
-            <input type="text" placeholder="From airport:" bind:value={routeData.from.name} on:blur="{blurInputDestination("from")}" list="hint-user-airports">
+            <input type="text" placeholder="From airport:" bind:value={routeData.from.name} on:blur="{blurInputDestination("from")}" on:focus={focusInputDestination} list="hint-user-airports">
             <datalist id="hint-user-airports">
                 <option value="{getHeadQuartersAirportName() + " #headquarters airport"}"/>
             </datalist>
-            <input type="text" placeholder="Destination airport:" bind:value={routeData.to.name} on:blur="{blurInputDestination("to")}" list="hint-arrival-airport">
+            <input type="text" placeholder="Destination airport:" bind:value={routeData.to.name} on:blur="{blurInputDestination("to")}" on:focus={focusInputDestination} list="hint-arrival-airport">
             <!-- Hint with airports which matches to what user pass into field "Destination airport" -->
             {#key routeData.to}
                 {#await Airport.findMatchedAirports(routeData.to.name) then matchedAirports}
@@ -131,7 +144,7 @@
                 <input type="time" bind:value={hours.end}>
             </div>
         </div>
-        {#key selectedPlaneModelName && routeData && hours}
+        {#key selectedPlaneModelName && routeData && hours || userFocusOnDestinationsInput}
             {#if routeDetermined()}
                 <div class="route-determined-details">
                     <div class="map"></div>
