@@ -1,7 +1,8 @@
 <script lang="ts">
     import { userData, type UserData } from "$lib/storages/interim";
     import { PlanesList, type AirplaneModel } from "$lib/storages/planes";
-    import { Airport, Route } from "$lib/api";
+    import { Airport, mapLoader, Route } from "$lib/api";
+    import { PUBLIC_MAP_ID } from "$env/static/public";
     
     let selectedPlaneModelName: string;
     let routeData = {
@@ -45,7 +46,7 @@
         }
 
         // Display alert when user plane hasn't got enought range to fly as far
-        if ((routeData.to.name && routeData.from.name) && selectedAirplaneData && !PlanesList.whetherIsAbleToFlyThroughtDistance(distanceBetweenPointsKm, selectedAirplaneData as AirplaneModel)) {
+        if ((routeData.to.name.trim() && routeData.from.name.trim()) && routeData.to.geo.lat && selectedAirplaneData && !PlanesList.whetherIsAbleToFlyThroughtDistance(distanceBetweenPointsKm, selectedAirplaneData as AirplaneModel)) {
             distanceBetweenPointsKm = 0;
             routeData.to = {
                 name: "",
@@ -100,6 +101,51 @@
             }
         }
     }
+
+    /** Added map with route preview directly to Svelte application template (markers between points and polyline drawed between these points) */
+    async function addPreviewOfRouteMap() {
+        const loader = await mapLoader();
+
+        const { Map } = await google.maps.importLibrary("maps") as google.maps.MapsLibrary;
+        const map = new Map(document.getElementsByClassName("map-preview-route")[0] as HTMLElement, {
+            maxZoom: 11,
+            minZoom: 5,
+            center: { lat: 52.237049, lng: 21.017532 },
+            zoom: 8,
+            mapId: PUBLIC_MAP_ID
+        });
+
+        // Set markers to map
+        const marker1 = new google.maps.Marker({
+            position: {
+                lat: routeData.to.geo.lat,
+                lng: routeData.to.geo.long
+            },
+            map,
+            title: "Route start point"
+        });
+        const market2 = new google.maps.Marker({
+            position: {
+                lat: routeData.from.geo.lat,
+                lng: routeData.from.geo.long
+            },
+            map,
+            title: "Route end point"
+        });
+
+        // Draw polyline on map
+        const line = new google.maps.Polyline({
+            path: [
+                { lat: routeData.from.geo.lat, lng: routeData.from.geo.long },
+                { lat: routeData.to.geo.lat, lng: routeData.to.geo.long }
+            ],
+            strokeColor: "#FF0000",
+            map
+        })
+
+        // Return empty string to GUI scarfolding
+        return ""
+    }
 </script>
 
 {#if $userData?.fleet}
@@ -147,7 +193,7 @@
         {#key selectedPlaneModelName && routeData && hours || userFocusOnDestinationsInput}
             {#if routeDetermined()}
                 <div class="route-determined-details">
-                    <div class="map"></div>
+                    <div class="map-preview-route" style="width: 500px; height: 500px;">{addPreviewOfRouteMap()}</div>
                     <div class="details">
                         <h2>Details of created route</h2>
                         <table>
