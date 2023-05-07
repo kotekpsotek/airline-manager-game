@@ -219,7 +219,7 @@
                             </tr>
                             <tr>
                                 <td>Route duration</td>
-                                <td>{durationOfTravelMins}</td>
+                                <td>{Route.calculateTimeOfRoute(selectedAirplaneData, distanceBetweenPointsKm)} minutes</td>
                             </tr>
                             <tr>
                                 <td>Depature date</td>

@@ -1,6 +1,8 @@
 import { PUBLIC_MAP_API_KEY } from "$env/static/public";
 import { Loader } from "@googlemaps/js-api-loader";
 import { browser } from "$app/environment";
+import type { UserFleetTypeUnit } from "./storages/interim";
+import type { AirplaneModel } from "./storages/planes";
 
 /** Loaded google maps api by authorization */
 export const mapLoader = async function() {
@@ -79,6 +81,7 @@ export class Airport {
 
 type DistanceKm = number;
 type distanceParams = { long: number, lat: number };
+type RouteDurationMins = number;
 /** Class for operations over routes between airports */
 export class Route {
     /** Calculate distance between two airports and return this distance as a number determined in Kilometers unit. Algorithm to calulate distance between points is from webpage: https://cloud.google.com/blog/products/maps-platform/how-calculate-distances-map-maps-javascript-api */
@@ -99,5 +102,14 @@ export class Route {
         const calculationDistance = 2 * earhRadiusKm * Math.asin(Math.sqrt(Math.sin(differenceRadiansLat/2)*Math.sin(differenceRadiansLat/2)+Math.cos(arlat)*Math.cos(brlat)*Math.sin(differenceRadiansLong/2)*Math.sin(differenceRadiansLong/2))); // Calcolate distance determined in kilometers and hundreds in metters
 
         return Math.ceil(calculationDistance); // round always to bigger value because in aviation it isn't such important (being around 1 liter of fuel etc..)
+    }
+
+    /** Return route persisting time in minutes */
+    static calculateTimeOfRoute(airplane: AirplaneModel | UserFleetTypeUnit | undefined, routeDistanceKm: number): RouteDurationMins {
+        if (airplane) {
+            return Math.round((routeDistanceKm / airplane.airplane_specification.max_speed) * 60 + 35);
+        }
+        
+        return NaN;
     }
 }
