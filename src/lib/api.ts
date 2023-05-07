@@ -83,7 +83,7 @@ type distanceParams = { long: number, lat: number };
 export class Route {
     /** Calculate distance between two airports and return this distance as a number determined in Kilometers unit. Algorithm to calulate distance between points is from webpage: https://cloud.google.com/blog/products/maps-platform/how-calculate-distances-map-maps-javascript-api */
     static calculateDistanceBetweenAirports(airportA: distanceParams, airportB: distanceParams): DistanceKm {
-        const earchRadiusKm = 6371.0710;
+        const earhRadiusKm = 6378.137;
 
         const aLat = Number(airportA.lat);
         const bLat = Number(airportB.lat);
@@ -96,7 +96,7 @@ export class Route {
         const differenceRadiansLat = arlat - brlat; // radian differences in latitudes
         const differenceRadiansLong = (bLong - aLong) * (Math.PI/180); // radian differences in longitudes
 
-        const calculationDistance = 2 * earchRadiusKm * Math.asin(Math.sqrt(Math.sin(differenceRadiansLat/2)*Math.sin(differenceRadiansLat/2)+Math.cos(aLat)*Math.cos(bLat)*Math.sin(differenceRadiansLong/2)*Math.sin(differenceRadiansLong/2))); // Calcolate distance determined in kilometers and hundreds in metters
+        const calculationDistance = 2 * earhRadiusKm * Math.asin(Math.sqrt(Math.sin(differenceRadiansLat/2)*Math.sin(differenceRadiansLat/2)+Math.cos(arlat)*Math.cos(brlat)*Math.sin(differenceRadiansLong/2)*Math.sin(differenceRadiansLong/2))); // Calcolate distance determined in kilometers and hundreds in metters
 
         return Math.ceil(calculationDistance); // round always to bigger value because in aviation it isn't such important (being around 1 liter of fuel etc..)
     }
