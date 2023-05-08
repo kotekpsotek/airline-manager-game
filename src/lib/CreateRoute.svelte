@@ -3,6 +3,10 @@
     import { PlanesList, type AirplaneModel } from "$lib/storages/planes";
     import { Airport, mapLoader, Route } from "$lib/api";
     import { PUBLIC_MAP_ID } from "$env/static/public";
+    import { createEventDispatcher } from "svelte";
+
+    /** Event dispatcher from svelte, for this component */
+    const dispatcher = createEventDispatcher();
     
     let selectedPlaneModelName: string;
     let routeData = {
@@ -146,6 +150,24 @@
         // Return empty string to GUI scarfolding
         return ""
     }
+
+    /** Activaed when user emit "click" event after click on "Create route" button html5 element */
+    function createRouteButtonClick(ev: Event) {
+        // Perform action only when user pass all data required to determine route
+        if (routeDetermined()) {
+            // Route object
+            const routeObj = {
+                ...routeData,
+                ...hours,
+                selectedAirplaneData,
+                distanceBetweenPointsKm,
+                durationOfTravelMins
+            }
+
+            // Emit event to component caller
+            dispatcher("created-route", routeObj);
+        }
+    }
 </script>
 
 <svelte:body style="overflow: hidden;"/>
@@ -257,7 +279,7 @@
                     </div>
                 {/if}
                 <div class="decision">
-                    <button id="create-route" disabled={!routeDetermined()}>
+                    <button id="create-route" disabled={!routeDetermined()} on:click={createRouteButtonClick}>
                         Create route
                     </button>
                 </div>
