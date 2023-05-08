@@ -419,6 +419,10 @@
         cursor: pointer;
     }
 
+    div.decision button[disabled] {
+        opacity: 0.5;
+    }
+
     @media only screen and (min-width: 1050px) {
         div.create-route > div {
             min-width: 1000px;
