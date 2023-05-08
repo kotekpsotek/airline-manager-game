@@ -148,113 +148,264 @@
     }
 </script>
 
+<svelte:body style="overflow: hidden;"/>
+
 {#if $userData?.fleet}
     <div class="create-route">
-        <h1>Creating new Route</h1>
-        <div class="select-plane">
-            <h2>Choose airplane for route</h2>
-            <select id="select-plane" bind:value={selectedPlaneModelName} placeholder="Select one from your planes">
-                {#each $userData.fleet as userDataFleetUnit }}
-                    <option value="{userDataFleetUnit.airplane_model_name}">{`${userDataFleetUnit.airplane_brand} ${userDataFleetUnit.airplane_model_name}`}</option>
-                {/each}
-                <option value=""></option>
-            </select>
-        </div>
-        <div class="determining-from-to">
-            <h2>Determine route start and end point</h2>
-            <input type="text" placeholder="From airport:" bind:value={routeData.from.name} on:blur="{blurInputDestination("from")}" on:focus={focusInputDestination} list="hint-user-airports">
-            <datalist id="hint-user-airports">
-                <option value="{getHeadQuartersAirportName() + " #headquarters airport"}"/>
-            </datalist>
-            <input type="text" placeholder="Destination airport:" bind:value={routeData.to.name} on:blur="{blurInputDestination("to")}" on:focus={focusInputDestination} list="hint-arrival-airport">
-            <!-- Hint with airports which matches to what user pass into field "Destination airport" -->
-            {#key routeData.to}
-                {#await Airport.findMatchedAirports(routeData.to.name) then matchedAirports}
-                    {#if matchedAirports.length}
-                        <datalist id="hint-arrival-airport">
-                            {#each matchedAirports as [number, airport_name, location, country, IATA, ICAO, Lat, Long, code1, code2, letter, GeoRegion]}
-                                <option value="{IATA} ({country} {location} {airport_name})"/>
-                            {/each}
-                        </datalist>
-                    {/if}
-                {/await}
+        <div>
+            <h1>Creating new Route</h1>
+            <div class="select-plane">
+                <h2>Choose airplane for route</h2>
+                <select id="select-plane" bind:value={selectedPlaneModelName} placeholder="Select one from your planes">
+                    {#each $userData.fleet as userDataFleetUnit }}
+                        <option value="{userDataFleetUnit.airplane_model_name}">{`${userDataFleetUnit.airplane_brand} ${userDataFleetUnit.airplane_model_name}`}</option>
+                    {/each}
+                    <option value=""></option>
+                </select>
+            </div>
+            <div class="determining-from-to">
+                <h2>Determine route start and end point</h2>
+                <input type="text" placeholder="From airport:" bind:value={routeData.from.name} on:blur="{blurInputDestination("from")}" on:focus={focusInputDestination} list="hint-user-airports">
+                <datalist id="hint-user-airports">
+                    <option value="{getHeadQuartersAirportName() + " #headquarters airport"}"/>
+                </datalist>
+                <input type="text" placeholder="Destination airport:" bind:value={routeData.to.name} on:blur="{blurInputDestination("to")}" on:focus={focusInputDestination} list="hint-arrival-airport">
+                <!-- Hint with airports which matches to what user pass into field "Destination airport" -->
+                {#key routeData.to}
+                    {#await Airport.findMatchedAirports(routeData.to.name) then matchedAirports}
+                        {#if matchedAirports.length}
+                            <datalist id="hint-arrival-airport">
+                                {#each matchedAirports as [number, airport_name, location, country, IATA, ICAO, Lat, Long, code1, code2, letter, GeoRegion]}
+                                    <option value="{IATA} ({country} {location} {airport_name})"/>
+                                {/each}
+                            </datalist>
+                        {/if}
+                    {/await}
+                {/key}
+            </div>
+            <div class="determining-start-hours">
+                <div>
+                    <p>Determine time of start route (to destination)</p>
+                    <input type="time" bind:value={hours.start}>
+                </div>
+                <div>
+                    <p>Determine time of start route (from destination)</p>
+                    <input type="time" bind:value={hours.end}>
+                </div>
+            </div>
+            {#key selectedPlaneModelName && routeData && hours || userFocusOnDestinationsInput}
+                {#if routeDetermined()}
+                    <div class="route-determined-details">
+                        <div class="map">
+                            <h2>Preview map</h2>
+                            <div class="map-preview-route">{addPreviewOfRouteMap()}</div>
+                        </div>
+                        <div class="details">
+                            <h2>Details of created route</h2>
+                            <table>
+                                <tr>
+                                    <th>Property</th>
+                                    <th>Value</th>
+                                </tr>
+                                <tr>
+                                    <td>From</td>
+                                    <td>{routeData.from.name}</td>
+                                </tr>
+                                <tr>
+                                    <td>To</td>
+                                    <td>{routeData.to.name}</td>
+                                </tr>
+                                <tr>
+                                    <td>Distance</td>
+                                    <td>{distanceBetweenPointsKm} km</td>
+                                </tr>
+                                <tr>
+                                    <td>Selected airplane</td>
+                                    <td>{`${selectedAirplaneData?.airplane_brand} ${selectedAirplaneData?.airplane_model_name}`}</td>
+                                </tr>
+                                <tr>
+                                    <td>Route duration</td>
+                                    <td>{Route.calculateTimeOfRoute(selectedAirplaneData, distanceBetweenPointsKm)} minutes</td>
+                                </tr>
+                                <tr>
+                                    <td>Depature date</td>
+                                    <td>{hours.start}</td>
+                                </tr>
+                                <tr>
+                                    <td>Arrival hour</td>
+                                    <td>{hours.end}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="requirements">
+                            <h2>Requirements of created route</h2>
+                            <table>
+                                <tr>
+                                    <th>Property</th>
+                                    <th>Value</th>
+                                </tr>
+                                <tr>
+                                    <td>Plane (for whole route)</td>
+                                    <td>{`${selectedAirplaneData?.airplane_brand} ${selectedAirplaneData?.airplane_model_name}`}</td>
+                                </tr>
+                                <tr>
+                                    <td>Fuel</td>
+                                    <td>{selectedAirplaneData ? `${PlanesList.calculateFuelRequirements(distanceBetweenPointsKm, selectedAirplaneData)} l` : "Unknown airplane model could't get it fuel consumption!"}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                {/if}
+                <div class="decision">
+                    <button id="create-route" disabled={!routeDetermined()}>
+                        Create route
+                    </button>
+                </div>
             {/key}
         </div>
-        <div class="determining-start-hours">
-            <div>
-                <p>Determine time of start route (to destination)</p>
-                <input type="time" bind:value={hours.start}>
-            </div>
-            <div>
-                <p>Determine time of start route (from destination)</p>
-                <input type="time" bind:value={hours.end}>
-            </div>
-        </div>
-        {#key selectedPlaneModelName && routeData && hours || userFocusOnDestinationsInput}
-            {#if routeDetermined()}
-                <div class="route-determined-details">
-                    <div class="map-preview-route" style="width: 500px; height: 500px;">{addPreviewOfRouteMap()}</div>
-                    <div class="details">
-                        <h2>Details of created route</h2>
-                        <table>
-                            <tr>
-                                <th>Property</th>
-                                <th>Value</th>
-                            </tr>
-                            <tr>
-                                <td>From</td>
-                                <td>{routeData.from.name}</td>
-                            </tr>
-                            <tr>
-                                <td>To</td>
-                                <td>{routeData.to.name}</td>
-                            </tr>
-                            <tr>
-                                <td>Distance</td>
-                                <td>{distanceBetweenPointsKm} km</td>
-                            </tr>
-                            <tr>
-                                <td>Selected airplane</td>
-                                <td>{`${selectedAirplaneData?.airplane_brand} ${selectedAirplaneData?.airplane_model_name}`}</td>
-                            </tr>
-                            <tr>
-                                <td>Route duration</td>
-                                <td>{Route.calculateTimeOfRoute(selectedAirplaneData, distanceBetweenPointsKm)} minutes</td>
-                            </tr>
-                            <tr>
-                                <td>Depature date</td>
-                                <td>{hours.start}</td>
-                            </tr>
-                            <tr>
-                                <td>Arrival hour</td>
-                                <td>{hours.end}</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="requirements">
-                        <h2>Requirements of created route</h2>
-                        <table>
-                            <tr>
-                                <th>Property</th>
-                                <th>Value</th>
-                            </tr>
-                            <tr>
-                                <td>Plane (for whole route)</td>
-                                <td>{`${selectedAirplaneData?.airplane_brand} ${selectedAirplaneData?.airplane_model_name}`}</td>
-                            </tr>
-                            <tr>
-                                <td>Fuel</td>
-                                <td>{selectedAirplaneData ? `${PlanesList.calculateFuelRequirements(distanceBetweenPointsKm, selectedAirplaneData)} l` : "Unknown airplane model could't get it fuel consumption!"}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            {/if}
-            <div class="decision">
-                <button id="create-route" disabled={!routeDetermined()}>
-                    Create route
-                </button>
-            </div>
-        {/key}
     </div>
 {/if}
+
+<style>
+    * {
+        font-family: 'Roboto', sans-serif;
+    }
+    
+    div.create-route {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        overflow-x: auto;
+    }
+
+    div.create-route > div {
+        margin: 5px;
+        height: fit-content;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        row-gap: 5px;
+        border: solid 2px rgb(22, 115, 237);
+        border-radius: 4px;
+        overflow: auto;
+    }
+
+    h1 {
+        color: rgb(22, 115, 237);
+    }
+
+    h2 {
+        color: rgb(19, 96, 197);
+    }
+
+    select, input {
+        color: rgb(22, 115, 237);
+        border: solid 1px rgb(22, 115, 237);
+        border-radius: 4px;
+        padding: 5px;
+        outline: none;
+        background-color: transparent;
+        font-size: 15px;
+        margin-top: 5px;
+    }
+
+    :is(input, select)::placeholder {
+        color: rgb(22, 115, 237);
+    }
+
+    div.determining-start-hours {
+        display: flex;
+        column-gap: 5px;
+        height: fit-content;
+    }
+
+    div.determining-start-hours input {
+        margin-top: 0px;
+    }
+
+    div.determining-start-hours div {
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    div.determining-start-hours div p {
+        height: 100%;
+        background-color: rgb(22, 115, 237);
+        border: solid 2px rgb(22, 115, 237);
+        border-radius: 4px;
+        border-top-right-radius: 0px;
+        border-bottom-right-radius: 0px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    div.determining-start-hours div input[type*=time] {
+        border-top-left-radius: 0px;
+        border-bottom-left-radius: 0px;
+    }
+
+    div.route-determined-details {
+        display: flex;
+        flex-direction: column;
+        row-gap: 5px;
+    }
+
+    div.map > div.map-preview-route {
+        width: 300px;
+        height: 300px;
+        margin-top: 5px;
+    }
+
+    table {
+        width: 100%;
+    }
+
+    table th {
+        height: 30px;
+        text-align: center;
+        color: white;
+        background-color: rgb(22, 115, 237);
+    }
+
+    table td {
+        height: 25px;
+        padding: 2px;
+    }
+
+    table > tr > td:first-of-type {
+        color: rgb(22, 115, 237);
+    }
+
+    div.decision {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    div.decision button {
+        padding: 5px;
+        outline: none;
+        color: white;
+        border: solid 1px rgb(26, 186, 26);
+        border-radius: 4px;
+        background-color: rgb(26, 186, 26);
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    @media only screen and (min-width: 1050px) {
+        div.create-route > div {
+            min-width: 1000px;
+            overflow: hidden;
+        }
+
+        div.map > div.map-preview-route {
+            width: 500px;
+            height: 500px;
+        }
+    }
+</style>
