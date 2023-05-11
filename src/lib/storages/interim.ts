@@ -43,7 +43,7 @@ export type UserData = {
     /** List of planes purchased by user */
     fleet: UserFleetTypeUnit[],
     /** List of user airline routes routes */
-    routes: any[],
+    routes: Route[],
     /** Account balance in dolars */
     balance: number 
 }

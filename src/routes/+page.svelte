@@ -8,7 +8,7 @@
     import PlanesMarket from "$lib/PlanesMarket.svelte";
     import CreateRoute from "$lib/CreateRoute.svelte";
     import { mapLoader } from "$lib/api";
-    import { userData as data, type UserData } from "$lib/storages/interim";
+    import { userData as data, type UserData, type Route } from "$lib/storages/interim";
 
     async function addMap() {
         // Example location
@@ -67,7 +67,25 @@
             planesMarket.$on("airline-creation-go-to-next-step", () => {
                 // Redirect user to next step only when bought any (or more then one) plane
                 if ($data?.fleet.length) {
-                    // .. New menu code
+                    // Destroy planes market svelte component
+                    planesMarket.$destroy();
+                    
+                    // Creating new route for plane
+                    const routeModule = new CreateRoute({
+                        target: document.getElementsByClassName("map")[0]
+                    });
+
+                    // When user created new route then add this route to user airline routes list from 'userData' storage
+                    routeModule.$on("created-route", ({ detail: route }: { detail: Route }) => {
+                        // Add route what will be automatically annotated by Svelte reactivity
+                        ($data as UserData).routes = [route];
+
+                        // Destroy svelte route component
+                        routeModule.$destroy();
+
+                        // Display final alert that: User created new airline
+                        alert("Congratulations you created new airline!");
+                    });
                 }
                 else alert("You must buy any plane to go ahead!");
             });
