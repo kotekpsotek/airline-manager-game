@@ -4,6 +4,7 @@
     import { Airport, mapLoader, Route } from "$lib/api";
     import { PUBLIC_MAP_ID } from "$env/static/public";
     import { createEventDispatcher } from "svelte";
+    import type { Route as RouteType } from "$lib/storages/interim";
 
     /** Event dispatcher from svelte, for this component */
     const dispatcher = createEventDispatcher();
@@ -157,12 +158,16 @@
         if (routeDetermined()) {
             // Route object
             const routeObj = {
-                ...routeData,
-                ...hours,
-                selectedAirplaneData,
+                routeDestinations: {
+                    ...routeData,
+                },
+                hours: {
+                    ...hours,
+                },
+                selectedAirplane: selectedAirplaneData as AirplaneModel,
                 distanceBetweenPointsKm,
                 durationOfTravelMins
-            }
+            } satisfies RouteType;
 
             // Emit event to component caller
             dispatcher("created-route", routeObj);

@@ -4,6 +4,27 @@ import { browser } from "$app/environment";
 
 export type UserFleetTypeUnit = Omit<AirplaneModel, "airplane_image">
 
+/** Representing each created by user air-route from airport to airport and in other side */
+export interface Route {
+    routeDestinations: {
+        from: {
+            name: string,
+            geo: { lat: number, long: number }
+        },
+        to: {
+            name: string,
+            geo: { lat: number, long: number }
+        }
+    },
+    hours: {
+        start: string,
+        end: string
+    },
+    selectedAirplane: AirplaneModel,
+    distanceBetweenPointsKm: number,
+    durationOfTravelMins: number
+}
+
 export type UserData = {
     /** User name which don't have to be user email */
     userName: string,
