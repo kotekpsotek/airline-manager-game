@@ -43,6 +43,9 @@
         selectedPlaneModelName;
         selectedAirplaneData = PlanesList.getAirplaneDetailsByModel(selectedPlaneModelName);
 
+        // When distance between points of travel will change
+        distanceBetweenPointsKm;
+
         // Check whether route depature and arrival airports are different
         routeData;
         if ((routeData.from.name && routeData.to.name) && routeData.from.name.replaceAll("#headquarters airport", "").trim() == routeData.to.name) {
@@ -59,6 +62,9 @@
             }
             alert("Your plane hasn't got enought range to fly as far. Choose plane with heighter range or choose shorter route")
         }
+
+        // Assign new duration of travel when one of function params will change thanks to upper values given into svelte reactive object
+        durationOfTravelMins = Route.calculateTimeOfRoute(selectedAirplaneData, distanceBetweenPointsKm);
     }
 
     /** Check whether user pass all data required to create a new route */
@@ -252,7 +258,7 @@
                                 </tr>
                                 <tr>
                                     <td>Route duration</td>
-                                    <td>{Route.calculateTimeOfRoute(selectedAirplaneData, distanceBetweenPointsKm)} minutes</td>
+                                    <td>{durationOfTravelMins} minutes</td>
                                 </tr>
                                 <tr>
                                     <td>Depature date</td>
