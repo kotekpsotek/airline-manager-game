@@ -112,4 +112,43 @@ export class Route {
         
         return NaN;
     }
+
+    /** Get arrival hour for route across performing calculation on route start time and it duration */
+    static getArrivalHour(startHour: string, routeDurationMins: number) {
+        /** Calculate number of milisecond from given amount of minutes */
+        const getMillisecondsFromMinutes = (mins: number) => {
+            const secs = mins * 60;
+            const milis = secs * 1000;
+
+            return milis;
+        }
+        
+        // Processing over start route hour
+        const cal = startHour.split(":");
+        const start = { hour: Number(cal[0]), min: Number(cal[1]) };
+        
+        // Calculating number of miliseconds from each param
+        const startMilis = getMillisecondsFromMinutes(start.hour * 60 + start.min);
+        const durationMilis = getMillisecondsFromMinutes(routeDurationMins);
+
+        // Calculate arrival time representing across arival miliseconds and from its amount obtain arrival hour throught 'Date' class
+        const arrivalMilis = startMilis + durationMilis;
+        let dt = new Date(arrivalMilis);
+        dt = new Date(dt.getTime() + dt.getTimezoneOffset() * 60 * 1000);
+        
+        // Return calculations result object
+        return { 
+            hour: dt.getHours(),
+            min: dt.getMinutes(),
+            /** Return formatted hour with minute (like: **15:35**) from this object */
+            getHrMin() {
+                /** In order to swear correct hour formating for hour units smaller then '10' */
+                const smallerThenTen = (number: number) => {
+                    return number < 10 ? `0${number}` : number;
+                };
+
+                return `${smallerThenTen(this.hour)}:${smallerThenTen(this.min)}`;
+            }
+        }
+    }
 }
