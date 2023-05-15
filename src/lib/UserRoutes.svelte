@@ -1,9 +1,60 @@
 <script lang="ts">
-    import { Route } from "$lib/api";
+    import { PUBLIC_MAP_ID } from "$env/static/public";
+    import { Route, mapLoader } from "$lib/api";
     import { userData } from "$lib/storages/interim";
     import { PlanePrivate, Arrival, Departure, Identification, Time, Edit, EventsAlt, FlowData } from "carbon-icons-svelte";
 
-    const iconsColor = "green"
+    const iconsColor = "green";
+
+    /** Adding map to each user-airline route */
+    function addMapToSingleRoute(node: HTMLElement, param: any) {
+        const fromGeo = param.from.geo;
+        const toGeo = param.to.geo;
+
+        // IIFE function to perform map addition to element
+        const action = (async () => {
+            await mapLoader();
+            const { Map } = await google.maps.importLibrary("maps") as google.maps.MapsLibrary;
+            const map = new Map(node, {
+                maxZoom: 15,
+                minZoom: 5,
+                center: { lat: fromGeo.lat, lng: fromGeo.long },
+                zoom: 8,
+                mapId: PUBLIC_MAP_ID
+            });
+    
+            // Set markers to map
+            const marker1 = new google.maps.Marker({
+                position: {
+                    lat: fromGeo.lat,
+                    lng: fromGeo.long
+                },
+                map,
+                title: "Route start point"
+            });
+            const market2 = new google.maps.Marker({
+                position: {
+                    lat: toGeo.lat,
+                    lng: toGeo.long
+                },
+                map,
+                title: "Route end point"
+            });
+
+            // Drawning polyline on map
+            const line = new google.maps.Polyline({
+            path: [
+                { lat: fromGeo.lat, lng: fromGeo.long },
+                { lat: toGeo.lat, lng: toGeo.long }
+            ],
+            strokeColor: "#FF0000",
+            map
+        })
+        })();
+
+        // Empty object must be returning from each Svelte action function
+        return {}
+    }
 </script>
 
 <div class="user-routes">
@@ -18,7 +69,7 @@
                         <Edit size={24} fill="red"/>
                     </button>
                     <p class="destination">{routeDestinations.from.name} - {routeDestinations.to.name}</p>
-                    <div class="map">
+                    <div class="map" use:addMapToSingleRoute={routeDestinations}>
 
                     </div>
                     <div class="metadata">
@@ -119,7 +170,7 @@
 
     .single-route div.map {
         width: 100%;
-        height: 50px;
+        height: 75px;
         background-color: black;
     }
 
