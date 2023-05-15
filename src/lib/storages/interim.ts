@@ -2,7 +2,10 @@ import { writable } from "svelte/store";
 import type { AirplaneModel } from "$lib/storages/planes";
 import { browser } from "$app/environment";
 
-export type UserFleetTypeUnit = Omit<AirplaneModel, "airplane_image">
+// export type UserFleetTypeUnit = Omit<AirplaneModel, "airplane_image">
+export interface UserFleetTypeUnit extends Omit<AirplaneModel, "airplane_image"> {
+    planeId: string
+}
 
 /** Representing each created by user air-route from airport to airport and in other side */
 export interface Route {
