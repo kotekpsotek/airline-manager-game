@@ -2,10 +2,12 @@
     import { PUBLIC_MAP_ID } from "$env/static/public";
     import { Route, mapLoader } from "$lib/api";
     import { userData } from "$lib/storages/interim";
-    import { PlanePrivate, Arrival, Departure, Identification, Time, Edit, EventsAlt, FlowData } from "carbon-icons-svelte";
+    import { PlanePrivate, Arrival, Departure, Identification, Time, Edit, EventsAlt, FlowData, CalendarAdd } from "carbon-icons-svelte";
     import EditRoute from "$lib/submissions/EditRoute.svelte";
+    import CreateRoute from "$lib/CreateRoute.svelte";
 
     const iconsColor = "green";
+    let durningCreationOfNewRoute: boolean = false;
 
     /** Adding map to each user-airline route */
     function addMapToSingleRoute(node: HTMLElement, param: any) {
@@ -77,60 +79,104 @@
             })
         }
     }
+
+    /** When user click on button "Create new route" then allow user to create new route and calncel this moment in any moment */
+    function createNewRoute(ev: Event) {
+        // Determing that user is durning creation of new route
+        durningCreationOfNewRoute = true;
+
+        // Spawn component to create new route
+        const createElement = new CreateRoute({
+            target: document.getElementsByClassName("map")[0],
+            props: {
+                withCancelationAvaiable: true
+            }
+        });
+
+        // When user decided to cancel creation of new route
+        createElement.$on("canceled", () => {
+            // Destroy element and show user other routes when it exists
+            createElement.$destroy();
+            durningCreationOfNewRoute = false;
+        })
+
+        // When user just created new route then add it to user-airline routes list and display all user-airline routes list again
+        createElement.$on("created-route", ({ detail: routeObj }) => {
+            // Add new created route to user-airline routes list
+            $userData!.routes.push(routeObj);
+            $userData = $userData;
+
+            // Delete "createElement" component and display routes list again
+            createElement.$destroy();
+            durningCreationOfNewRoute = false;
+        })
+    }
 </script>
 
-<div class="user-routes">
-    <h1>Your routes</h1>
-    <div class="routes">
-        <h3>List:</h3>
-        {#if $userData}
-            <!-- Spawn each user airline route by iterating over user airline routes array -->
-            {#each $userData.routes as { routeId, routeDestinations, selectedAirplane, hours, durationOfTravelMins, distanceBetweenPointsKm }, it_id}
-                <div class="single-route">
-                    <button class="edit" title="Edit route" on:click={editRoute(it_id)}>
-                        <Edit size={24} fill="red"/>
-                    </button>
-                    <p class="destination">{routeDestinations.from.name} - {routeDestinations.to.name}</p>
-                    <div class="map" use:addMapToSingleRoute={routeDestinations}></div>
-                    <div class="metadata">
-                        <h4>Infos</h4>
-                        <div class="src">
-                            <div class="fly-identifier">
-                                <Identification size={24} fill={iconsColor}/>
-                                <p>{routeId}</p>
+{#if !durningCreationOfNewRoute}
+    <div class="user-routes">
+        <button id="create-new-route" on:click={createNewRoute}>
+            <CalendarAdd size={24}/>
+            <p>Add new route</p>
+        </button>
+        <h1>Your routes</h1>
+        <div class="routes">
+            <h3>List:</h3>
+            {#if $userData}
+                {#if $userData.routes.length}
+                    <!-- Spawn each user airline route by iterating over user airline routes array -->
+                    {#each $userData.routes as { routeId, routeDestinations, selectedAirplane, hours, durationOfTravelMins, distanceBetweenPointsKm }, it_id}
+                        <div class="single-route">
+                            <button class="edit" title="Edit route" on:click={editRoute(it_id)}>
+                                <Edit size={24} fill="red"/>
+                            </button>
+                            <p class="destination">{routeDestinations.from.name} - {routeDestinations.to.name}</p>
+                            <div class="map" use:addMapToSingleRoute={routeDestinations}></div>
+                            <div class="metadata">
+                                <h4>Infos</h4>
+                                <div class="src">
+                                    <div class="fly-identifier">
+                                        <Identification size={24} fill={iconsColor}/>
+                                        <p>{routeId}</p>
+                                    </div>
+                                    <div class="airplane">
+                                        <PlanePrivate size={24} fill={iconsColor}/>
+                                        <p>{selectedAirplane.airplane_brand} {selectedAirplane.airplane_model_name}</p>
+                                    </div>
+                                    <div class="passangers-count-per-plane-capacity">
+                                        <EventsAlt size={24} fill={iconsColor}/>
+                                        <p>22/{selectedAirplane.airplane_specification.max_passangers} (28.6%)</p>
+                                    </div>
+                                    <div class="departure-airport">
+                                        <Departure size={24} fill={iconsColor}/>
+                                        <p>{routeDestinations.from.name}</p>
+                                    </div>
+                                    <div class="arrival-airport">
+                                        <Arrival size={24} fill={iconsColor}/>
+                                        <p>{routeDestinations.to.name}</p>
+                                    </div>
+                                    <div class="distance-between-points">
+                                        <FlowData size={24} fill={iconsColor}/>
+                                        <p>{distanceBetweenPointsKm} km</p>
+                                    </div>
+                                    <div class="time-departure-arrival">
+                                        <Time size={24} fill={iconsColor}/>
+                                        <p>{hours.start} - {Route.getArrivalHour(hours.start, durationOfTravelMins).getHrMin()}</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="airplane">
-                                <PlanePrivate size={24} fill={iconsColor}/>
-                                <p>{selectedAirplane.airplane_brand} {selectedAirplane.airplane_model_name}</p>
-                            </div>
-                            <div class="passangers-count-per-plane-capacity">
-                                <EventsAlt size={24} fill={iconsColor}/>
-                                <p>22/{selectedAirplane.airplane_specification.max_passangers} (28.6%)</p>
-                            </div>
-                            <div class="departure-airport">
-                                <Departure size={24} fill={iconsColor}/>
-                                <p>{routeDestinations.from.name}</p>
-                            </div>
-                            <div class="arrival-airport">
-                                <Arrival size={24} fill={iconsColor}/>
-                                <p>{routeDestinations.to.name}</p>
-                            </div>
-                            <div class="distance-between-points">
-                                <FlowData size={24} fill={iconsColor}/>
-                                <p>{distanceBetweenPointsKm} km</p>
-                            </div>
-                            <div class="time-departure-arrival">
-                                <Time size={24} fill={iconsColor}/>
-                                <p>{hours.start} - {Route.getArrivalHour(hours.start, durationOfTravelMins).getHrMin()}</p>
-                            </div>
+                            <button id="departure-fly">Depart</button>
                         </div>
+                    {/each}
+                {:else}
+                    <div class="no-av-rou">
+                        <p>You don't have any avaiable route. You can create new route using above button</p>
                     </div>
-                    <button id="departure-fly">Depart</button>
-                </div>
-            {/each}
-        {/if}
+                {/if}
+            {/if}
+        </div>
     </div>
-</div>
+{/if}
 
 <style>
     * {
@@ -143,14 +189,30 @@
         flex-direction: column;
         row-gap: 5px;
         overflow: auto;
+        position: relative;
     }
 
+    .user-routes button#create-new-route {
+        padding: 5px;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        column-gap: 4px;
+        align-items: center;
+        border: solid 2px green;
+        border-radius: 4px;
+        outline: none;
+        color: green;
+    }
+    
     h1, h3, h4 {
         color: rgb(22, 115, 237);
     }
 
     button {
         cursor: pointer;
+        background-color: transparent;
     }
 
     .routes {

@@ -6,6 +6,9 @@
     import { createEventDispatcher } from "svelte";
     import type { Route as RouteType } from "$lib/storages/interim";
 
+    // Whether user can cancel of creating new route (really pleasant when user add new routes further time then this when user created just new airline)
+    export let withCancelationAvaiable: boolean = false;
+
     /** Event dispatcher from svelte, for this component */
     const dispatcher = createEventDispatcher();
     
@@ -180,6 +183,16 @@
             dispatcher("created-route", routeObj);
         }
     }
+
+    /** When user decide to cancel of creation new route and confirm this step on confirm alert when option from this component 'withCancelationAvaiable' is set as true */
+    function cancelCreatingNewRoute(ev: Event) {
+        const ask = confirm("For sure would you like to cancel of creating new route?");
+
+        // Only when user accept cancelation process of creating new route will be canceled in other case won't be
+        if (ask) {
+            dispatcher("canceled");
+        }
+    }
 </script>
 
 <svelte:body style="overflow: hidden;"/>
@@ -291,6 +304,11 @@
                     </div>
                 {/if}
                 <div class="decision">
+                    {#if withCancelationAvaiable}
+                        <button id="cancel" on:click={cancelCreatingNewRoute}>
+                            Cancel
+                        </button>
+                    {/if}
                     <button id="create-route" disabled={!routeDetermined()} on:click={createRouteButtonClick}>
                         Create route
                     </button>
@@ -416,19 +434,29 @@
     }
 
     div.decision {
+        margin-top: 5px;
         display: flex;
         justify-content: flex-end;
+        column-gap: 5px;
     }
 
-    div.decision button {
+    div.decision button { /* Joint params for both decision buttons types */
         padding: 5px;
         outline: none;
         color: white;
-        border: solid 1px rgb(26, 186, 26);
         border-radius: 4px;
-        background-color: rgb(26, 186, 26);
         font-size: 18px;
         cursor: pointer;
+    }
+
+    div.decision button#create-route {
+        border: solid 1px rgb(26, 186, 26);
+        background-color: rgb(26, 186, 26);
+    }
+
+    div.decision button#cancel {
+        border: solid 1px rgb(175, 1, 1);
+        background-color: rgb(175, 1, 1);
     }
 
     div.decision button[disabled] {
