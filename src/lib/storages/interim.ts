@@ -6,6 +6,7 @@ export type UserFleetTypeUnit = Omit<AirplaneModel, "airplane_image">
 
 /** Representing each created by user air-route from airport to airport and in other side */
 export interface Route {
+    routeId: string,
     routeDestinations: {
         from: {
             name: string,

@@ -151,4 +151,17 @@ export class Route {
             }
         }
     }
+
+    /** Generate new route id for each new route. Each route should contains: 2 letter first airline name letters and tailing number code with length - number of airline letter used into identifier */
+    static generateRouteId(length: 4 | 6 | 8, airlineName: string): string {
+        const airlineNameSct = airlineName.trim().slice(0, 2).toLocaleUpperCase();
+        let readyRoute = `${airlineNameSct}`;
+
+        for (let i = 0; i < length - airlineNameSct.length; i++) {
+            const number = Math.floor(Math.random() * 9)
+            readyRoute += number;
+        };
+
+        return readyRoute;
+    }
 }

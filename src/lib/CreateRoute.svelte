@@ -164,6 +164,7 @@
         if (routeDetermined()) {
             // Route object
             const routeObj = {
+                routeId: Route.generateRouteId(8, $userData!.airlineName),
                 routeDestinations: {
                     ...routeData,
                 },
