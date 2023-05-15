@@ -1,4 +1,4 @@
-import type { UserFleetTypeUnit } from "$lib/storages/interim";
+import type { UserData, UserFleetTypeUnit } from "$lib/storages/interim";
 
 export type AirplaneBrands = "boeing" | "airbus" | "atr";
 export interface AirplaneModel {
@@ -63,5 +63,22 @@ export class PlanesList {
 
         // Check whether plane can carry this much of fuel
         return fuelRequirements < plane.airplane_specification.fuel_capacity;
+    }
+
+    /** Generate and return registration for each call */
+    static generateRegistration(headQuarterAirport: Pick<UserData, "headQuarterAirport">): string {
+        const countryName = headQuarterAirport.headQuarterAirport.country;
+        const prefixCountry = countryName.slice(0, 2);
+        const lettersSet = "qwertyuiopasdfghjklzxcvbnm";
+
+        let ready = `${prefixCountry}-`;
+
+        for (let i = 0; i < 3; i++) {
+            const randId = Math.floor(Math.random() * lettersSet.length);
+            const letter = lettersSet[randId];
+            ready += letter;
+        }
+
+        return ready.toLocaleUpperCase();
     }
 }

@@ -50,9 +50,10 @@
                     for (let i = 0; i < amountOfUnits; i++) {
                         const airplaneModel = (await PlanesList.getAirplanes(choosenBrandOfPlanes))[itteratedPlaneId] as Partial<AirplaneModel>;
                         delete airplaneModel.airplane_image; // To adjust result object shape to requirement of "UserFleetTypeUnit" type
-
+                        
                         $userD.fleet.push({
                             ...(airplaneModel as UserFleetTypeUnit),
+                            planeId: PlanesList.generateRegistration($userD),
                         });
                     }
                     $userD = $userD; // must be performed in this way to add planes to user fleet
