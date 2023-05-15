@@ -3,6 +3,7 @@
     import { Route, mapLoader } from "$lib/api";
     import { userData } from "$lib/storages/interim";
     import { PlanePrivate, Arrival, Departure, Identification, Time, Edit, EventsAlt, FlowData } from "carbon-icons-svelte";
+    import EditRoute from "$lib/submissions/EditRoute.svelte";
 
     const iconsColor = "green";
 
@@ -55,6 +56,27 @@
         // Empty object must be returning from each Svelte action function
         return {}
     }
+
+    /** 
+     * **Editing route** 
+     * @param iterationRouteId - must always represent existing route from svelte #each iteration
+    */
+    function editRoute(iterationRouteId: number) {
+        const routeSelectedId = $userData!.routes[iterationRouteId].routeId;
+        return (ev: Event) => {
+            const editElement = new EditRoute({
+                target: document.getElementsByClassName("map")[0],
+                props: {
+                    routeId: routeSelectedId
+                }
+            });
+
+            // When user close menu
+            editElement.$on("closed", () => {
+                editElement.$destroy();
+            })
+        }
+    }
 </script>
 
 <div class="user-routes">
@@ -63,21 +85,19 @@
         <h3>List:</h3>
         {#if $userData}
             <!-- Spawn each user airline route by iterating over user airline routes array -->
-            {#each $userData.routes as { routeDestinations, selectedAirplane, hours, durationOfTravelMins, distanceBetweenPointsKm }}
+            {#each $userData.routes as { routeId, routeDestinations, selectedAirplane, hours, durationOfTravelMins, distanceBetweenPointsKm }, it_id}
                 <div class="single-route">
-                    <button class="edit" title="Edit route">
+                    <button class="edit" title="Edit route" on:click={editRoute(it_id)}>
                         <Edit size={24} fill="red"/>
                     </button>
                     <p class="destination">{routeDestinations.from.name} - {routeDestinations.to.name}</p>
-                    <div class="map" use:addMapToSingleRoute={routeDestinations}>
-
-                    </div>
+                    <div class="map" use:addMapToSingleRoute={routeDestinations}></div>
                     <div class="metadata">
                         <h4>Infos</h4>
                         <div class="src">
                             <div class="fly-identifier">
                                 <Identification size={24} fill={iconsColor}/>
-                                <p>EX001</p>
+                                <p>{routeId}</p>
                             </div>
                             <div class="airplane">
                                 <PlanePrivate size={24} fill={iconsColor}/>
