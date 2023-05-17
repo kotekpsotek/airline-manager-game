@@ -26,7 +26,8 @@ export interface Route {
     },
     selectedAirplane: AirplaneModel,
     distanceBetweenPointsKm: number,
-    durationOfTravelMins: number
+    durationOfTravelMins: number,
+    status: "in way to" | "in way from" | "waiting for in way to" | "waiting for in way from"
 }
 
 export type UserData = {

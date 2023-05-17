@@ -1,7 +1,7 @@
 import { PUBLIC_MAP_API_KEY } from "$env/static/public";
 import { Loader } from "@googlemaps/js-api-loader";
 import { browser } from "$app/environment";
-import type { UserFleetTypeUnit } from "./storages/interim";
+import type { UserFleetTypeUnit, Route as RouteType } from "./storages/interim";
 import type { AirplaneModel } from "./storages/planes";
 
 /** Loaded google maps api by authorization */
@@ -27,6 +27,14 @@ export const airportsAllList: Promise<string[][] | undefined> = (async function(
         }
     }
 })(); 
+
+/** Calculate date now with applied timezone offset */
+export const calculateDate = () => {
+    const dn = new Date();
+    const minsNow = dn.getTime() / 1_000 / 60;
+    const minsWithOffset = dn.getTimezoneOffset() < 0 ? minsNow + (dn.getTimezoneOffset() * -1) : minsNow + dn.getTimezoneOffset();
+    return new Date(minsWithOffset * 60 * 1_000)
+}
 
 /** Class for operations over airports and it's data */
 export class Airport {
@@ -150,6 +158,50 @@ export class Route {
                 return `${smallerThenTen(this.hour)}:${smallerThenTen(this.min)}`;
             }
         }
+    }
+
+    /** Return start and end hours for route divided and accumulated as hour and minute by object keys */
+    static getHoursSeparated(hours: { start: string, end: string }): Record<"start" | "end", { hour: number, min: number }> {
+        const separateFrom: (time: string) => { hour: number, min: number } = (time: string) => {
+            const sep = time.split(":");
+            return {
+                hour: Number(sep[0]),
+                min: Number(sep[1])
+            }
+        }
+        
+        return {
+            start: separateFrom(hours.start),
+            end: separateFrom(hours.end)
+        }
+    }
+
+    /** Check whether route can be now departuring to targer airport */
+    static checkTimeForDeparture(hours: { start: string, end: string }, routeStatus: RouteType["status"]) {
+        // Now times
+        const nD = new Date();
+        const hr = nD.getHours();
+        const min = nD.getMinutes();
+
+        // Route start and end times divided by minutes and hours
+        const routeTimes = Route.getHoursSeparated(hours);
+
+        // Determine which hour of route will be checked. For determining is using route status
+        let toCheck: { hour: number, min: number };
+        if (routeStatus == "waiting for in way to") {
+            toCheck = routeTimes.start;
+        } 
+        else if (routeStatus == "waiting for in way from") {
+            toCheck = routeTimes.end;
+        }
+        else return false;
+
+        // Check and return positive when passes
+        if (toCheck.hour < hr || (toCheck.hour == hr && toCheck.min <= min)) {
+            return true;
+        }
+
+        return false;
     }
 
     /** Generate new route id for each new route. Each route should contains: 2 letter first airline name letters and tailing number code with length - number of airline letter used into identifier */

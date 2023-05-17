@@ -102,6 +102,11 @@
 
         // When user just created new route then add it to user-airline routes list and display all user-airline routes list again
         createElement.$on("created-route", ({ detail: routeObj }) => {
+            // Create routes field when it doesn't exists
+            if (!$userData!.routes) {
+                $userData!.routes = [];
+            }
+            
             // Add new created route to user-airline routes list
             $userData!.routes.push(routeObj);
             $userData = $userData;
@@ -123,9 +128,9 @@
         <div class="routes">
             <h3>List:</h3>
             {#if $userData}
-                {#if $userData.routes.length}
+                {#if $userData.routes?.length}
                     <!-- Spawn each user airline route by iterating over user airline routes array -->
-                    {#each $userData.routes as { routeId, routeDestinations, selectedAirplane, hours, durationOfTravelMins, distanceBetweenPointsKm }, it_id}
+                    {#each $userData.routes as { routeId, routeDestinations, selectedAirplane, hours, durationOfTravelMins, distanceBetweenPointsKm, status }, it_id}
                         <div class="single-route">
                             <button class="edit" title="Edit route" on:click={editRoute(it_id)}>
                                 <Edit size={24} fill="red"/>
@@ -161,11 +166,15 @@
                                     </div>
                                     <div class="time-departure-arrival">
                                         <Time size={24} fill={iconsColor}/>
-                                        <p>{hours.start} - {Route.getArrivalHour(hours.start, durationOfTravelMins).getHrMin()}</p>
+                                        <p>{hours.start} - {Route.getArrivalHour(hours.start, durationOfTravelMins).getHrMin()} ({durationOfTravelMins} min)</p>
                                     </div>
                                 </div>
                             </div>
-                            <button id="departure-fly">Depart</button>
+                            {#if status.startsWith("waiting") && Route.checkTimeForDeparture(hours, status)}
+                                <button id="departure-fly">Depart</button>
+                            {:else if status.startsWith("waiting") && !Route.checkTimeForDeparture(hours, status)}
+                                <button id="departure-fly" disabled>Depart</button>
+                            {/if}
                         </div>
                     {/each}
                 {:else}

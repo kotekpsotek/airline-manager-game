@@ -176,7 +176,8 @@
                 },
                 selectedAirplane: selectedAirplaneData as AirplaneModel,
                 distanceBetweenPointsKm,
-                durationOfTravelMins
+                durationOfTravelMins,
+                status: "waiting for in way to"
             } satisfies RouteType;
 
             // Emit event to component caller
