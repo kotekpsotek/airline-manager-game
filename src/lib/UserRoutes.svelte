@@ -170,10 +170,8 @@
                                     </div>
                                 </div>
                             </div>
-                            {#if status.startsWith("waiting") && Route.checkTimeForDeparture(hours, status)}
-                                <button id="departure-fly">Depart</button>
-                            {:else if status.startsWith("waiting") && !Route.checkTimeForDeparture(hours, status)}
-                                <button id="departure-fly" disabled>Depart</button>
+                            {#if status.startsWith("waiting")}
+                                <button id="departure-fly" class:departure-fly-disabled={!Route.checkTimeForDeparture(hours, status)}>Depart ({status == "waiting for in way to" ? "to destination" : "from destination"})</button>
                             {/if}
                         </div>
                     {/each}
@@ -295,5 +293,9 @@
         letter-spacing: 1px;
         background-color: rgba(0, 128, 0, 0.607);
         color: white;
+    }
+
+    .single-route > button#departure-fly.departure-fly-disabled {
+        opacity: 0.5;
     }
 </style>
