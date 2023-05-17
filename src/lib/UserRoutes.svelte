@@ -1,13 +1,25 @@
 <script lang="ts">
     import { PUBLIC_MAP_ID } from "$env/static/public";
     import { Route, mapLoader } from "$lib/api";
-    import { userData } from "$lib/storages/interim";
+    import { userData, type Route as RouteType } from "$lib/storages/interim";
     import { PlanePrivate, Arrival, Departure, Identification, Time, Edit, EventsAlt, FlowData, CalendarAdd } from "carbon-icons-svelte";
     import EditRoute from "$lib/submissions/EditRoute.svelte";
     import CreateRoute from "$lib/CreateRoute.svelte";
 
     const iconsColor = "green";
     let durningCreationOfNewRoute: boolean = false;
+
+    /** Perform tasks included into function body for each route element when it is spawning into screen view */
+    const whenRouteSpawned = (node: HTMLElement, iterationOverRoutesId: number) => {
+        const iteratedRouteObj = $userData!.routes[iterationOverRoutesId];
+        
+        // When occupiedSeats count wasn't generated then generate it and assign to route as constant occupied seats value
+        if (!iteratedRouteObj.occupiedSeats) {
+            $userData!.routes[iterationOverRoutesId].occupiedSeats = Route.generateOccupiedPlaneSeatsCount(iteratedRouteObj.selectedAirplane)
+        }
+        
+        return {}
+    }
 
     /** Adding map to each user-airline route */
     function addMapToSingleRoute(node: HTMLElement, param: any) {
@@ -130,8 +142,8 @@
             {#if $userData}
                 {#if $userData.routes?.length}
                     <!-- Spawn each user airline route by iterating over user airline routes array -->
-                    {#each $userData.routes as { routeId, routeDestinations, selectedAirplane, hours, durationOfTravelMins, distanceBetweenPointsKm, status }, it_id}
-                        <div class="single-route">
+                    {#each $userData.routes as { routeId, routeDestinations, selectedAirplane, hours, durationOfTravelMins, distanceBetweenPointsKm, status, occupiedSeats }, it_id}
+                        <div class="single-route" use:whenRouteSpawned={it_id}>
                             <button class="edit" title="Edit route" on:click={editRoute(it_id)}>
                                 <Edit size={24} fill="red"/>
                             </button>
@@ -150,7 +162,7 @@
                                     </div>
                                     <div class="passangers-count-per-plane-capacity">
                                         <EventsAlt size={24} fill={iconsColor}/>
-                                        <p>22/{selectedAirplane.airplane_specification.max_passangers} (28.6%)</p>
+                                        <p>{occupiedSeats || 0}/{selectedAirplane.airplane_specification.max_passangers} ({Number((occupiedSeats || 0) / (selectedAirplane.airplane_specification.max_passangers / 100)).toFixed(1)}%)</p>
                                     </div>
                                     <div class="departure-airport">
                                         <Departure size={24} fill={iconsColor}/>

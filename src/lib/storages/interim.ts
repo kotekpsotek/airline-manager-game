@@ -28,6 +28,8 @@ export interface Route {
     distanceBetweenPointsKm: number,
     durationOfTravelMins: number,
     status: "in way to" | "in way from" | "waiting for in way to" | "waiting for in way from"
+    /** How many seats are reserved by passangers */
+    occupiedSeats?: number
 }
 
 export type UserData = {

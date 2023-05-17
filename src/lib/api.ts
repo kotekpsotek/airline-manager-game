@@ -216,4 +216,19 @@ export class Route {
 
         return readyRoute;
     }
+
+    /** Calculate count of occupied plane seats for each route part. Minimum count of occupied seats cannot be smaller then specified percentage (for this example this amount is: 25%) */
+    static generateOccupiedPlaneSeatsCount({ airplane_specification: { max_passangers } }: AirplaneModel) {
+        // Count of minimum occupied seats is set as 25%
+        const minimumCountOfOccupiedSeatsByPercentage = Math.round(max_passangers / 100 * 25);
+
+        // Calculate occupied plane seats count or set this count when is smaller then minimum as minimum count of occupied seats
+        let calculate: number = Math.floor(Math.random() * max_passangers);
+        if (calculate < minimumCountOfOccupiedSeatsByPercentage) {
+            calculate = minimumCountOfOccupiedSeatsByPercentage;
+        }
+
+        // Return result of calculating
+        return calculate;
+    }
 }

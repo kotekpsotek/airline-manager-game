@@ -26,7 +26,7 @@ describe("api tests", () => {
 
     test("Whether route can be departuring now by time", () => {
         // Check for now
-        const dn = calculateDate();
+        const dn = calculateDate(); // This time and new Date() time can be different
         const arg = `${dn.getHours()}:${dn.getMinutes()}`;
         const canBe = assert.isTrue(Route.checkTimeForDeparture({ start: arg, end: arg }, "waiting for in way to"), "Couldn't be departured when time now is equal to departure time")
         console.log('Can be now departured when time now is equal to route departure time');
@@ -41,4 +41,9 @@ describe("api tests", () => {
         const canBe3 = assert.isTrue(Route.checkTimeForDeparture({ start: arg3, end: arg3 }, "waiting for in way to"), "Couldn't be departured when time now hour is smaller then departure time hour");
         console.log("Can be departured when time now hour is greater then departure time hour")
     });
+
+    test("Occupied count of plane seats for route", () => {
+        const count = Route.generateOccupiedPlaneSeatsCount({ airplane_specification: { max_passangers: 130 }} as any);
+        console.log(`Occupied count of planes seats for route is ${count}`);
+    })
 })
