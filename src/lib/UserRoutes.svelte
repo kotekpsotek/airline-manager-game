@@ -2,9 +2,10 @@
     import { PUBLIC_MAP_ID } from "$env/static/public";
     import { Route, mapLoader } from "$lib/api";
     import { userData, type Route as RouteType } from "$lib/storages/interim";
-    import { PlanePrivate, Arrival, Departure, Identification, Time, Edit, EventsAlt, FlowData, CalendarAdd } from "carbon-icons-svelte";
+    import { PlanePrivate, Arrival, Departure, Identification, Time, Edit, EventsAlt, FlowData, CalendarAdd, GasStation } from "carbon-icons-svelte";
     import EditRoute from "$lib/submissions/EditRoute.svelte";
     import CreateRoute from "$lib/CreateRoute.svelte";
+    import { PlanesList } from "./storages/planes";
 
     const iconsColor = "green";
     let durningCreationOfNewRoute: boolean = false;
@@ -186,6 +187,10 @@
                                                 {hours.end} - {Route.getArrivalHour(hours.end, durationOfTravelMins).getHrMin()}
                                             {/if} ({durationOfTravelMins} min)
                                         </p>
+                                    </div>
+                                    <div class="fuel-consumption" title="Fuel consumption per one way for this route">
+                                        <GasStation size={24} fill={iconsColor}/>
+                                        <p>{PlanesList.calculateFuelRequirements(distanceBetweenPointsKm, selectedAirplane).toFixed(0)} l</p>
                                     </div>
                                 </div>
                             </div>
