@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { userData, type UserData } from "$lib/storages/interim";
+    import { userData, type UserData, type UserFleetTypeUnit } from "$lib/storages/interim";
     import { PlanesList, type AirplaneModel } from "$lib/storages/planes";
     import { Airport, mapLoader, Route } from "$lib/api";
     import { PUBLIC_MAP_ID } from "$env/static/public";
@@ -33,7 +33,7 @@
         start: "",
         end: ""
     };
-    let selectedAirplaneData: AirplaneModel | undefined; // Selected airplane details
+    let selectedAirplaneData: UserFleetTypeUnit | undefined; // Selected airplane details
     let distanceBetweenPointsKm: number = 0; // Distance between points in kilometers 
     let durationOfTravelMins: number = 1; // duration of travel in minutes
 
@@ -42,9 +42,26 @@
 
     // Inside are data changing durning changing of route datas
     $: {
-        // Obtain details about selected airplane
+        // Obtain details about selected airplane when other airplane has been selected
         selectedPlaneModelName;
-        selectedAirplaneData = PlanesList.getAirplaneDetailsByModel(selectedPlaneModelName);
+        
+        // Prepare data for selected airplane only when airplane was selected
+        if (selectedPlaneModelName) {
+            // Separate airplane name from airplane id from fleet
+            const [airplaneModel, planeUnitFromFleetId] = selectedPlaneModelName.split("#");
+    
+            // Get selected airplane accutate data
+            const selectedAirplaneModelAcData = PlanesList.getAirplaneDetailsByModel(airplaneModel) as AirplaneModel;
+    
+            // Delete unnecessary proprty into type 'UserFleetTypeUnit'
+            delete (selectedAirplaneModelAcData as any).airplane_image;
+    
+            // Assign perpared data to selected airplane field
+            selectedAirplaneData = {
+                ...selectedAirplaneModelAcData,
+                planeId: planeUnitFromFleetId
+            };
+        }
 
         // When distance between points of travel will change
         distanceBetweenPointsKm;
@@ -57,7 +74,7 @@
         }
 
         // Display alert when user plane hasn't got enought range to fly as far
-        if ((routeData.to.name.trim() && routeData.from.name.trim()) && routeData.to.geo.lat && selectedAirplaneData && !PlanesList.whetherIsAbleToFlyThroughtDistance(distanceBetweenPointsKm, selectedAirplaneData as AirplaneModel)) {
+        if ((routeData.to.name.trim() && routeData.from.name.trim()) && routeData.to.geo.lat && selectedAirplaneData && !PlanesList.whetherIsAbleToFlyThroughtDistance(distanceBetweenPointsKm, selectedAirplaneData as any)) {
             distanceBetweenPointsKm = 0;
             routeData.to = {
                 name: "",
@@ -72,7 +89,7 @@
 
     /** Check whether user pass all data required to create a new route */
     const routeDetermined: () => boolean = () => {
-        return !userFocusOnDestinationsInput && routeData.from && routeData.to && hours.start && hours.end && distanceBetweenPointsKm && PlanesList.whetherIsAbleToFlyThroughtDistance(distanceBetweenPointsKm, selectedAirplaneData as AirplaneModel) ? true : false;
+        return !userFocusOnDestinationsInput && routeData.from && routeData.to && hours.start && hours.end && distanceBetweenPointsKm && PlanesList.whetherIsAbleToFlyThroughtDistance(distanceBetweenPointsKm, selectedAirplaneData as any) ? true : false;
     }
 
     /** Get formated headquarters airport name for usage into GUI */
@@ -174,7 +191,7 @@
                 hours: {
                     ...hours,
                 },
-                selectedAirplane: selectedAirplaneData as AirplaneModel,
+                selectedAirplane: selectedAirplaneData as any,
                 distanceBetweenPointsKm,
                 durationOfTravelMins,
                 status: "waiting for in way to"
@@ -206,7 +223,7 @@
                 <h2>Choose airplane for route</h2>
                 <select id="select-plane" bind:value={selectedPlaneModelName} placeholder="Select one from your planes">
                     {#each $userData.fleet as userDataFleetUnit }}
-                        <option value="{userDataFleetUnit.airplane_model_name}">{`${userDataFleetUnit.airplane_brand} ${userDataFleetUnit.airplane_model_name}`}</option>
+                        <option value="{userDataFleetUnit.airplane_model_name}#{userDataFleetUnit.planeId}">{`${userDataFleetUnit.airplane_brand} ${userDataFleetUnit.airplane_model_name}`}</option>
                     {/each}
                     <option value=""></option>
                 </select>

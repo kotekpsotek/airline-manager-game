@@ -159,7 +159,7 @@
                                     </div>
                                     <div class="airplane">
                                         <PlanePrivate size={24} fill={iconsColor}/>
-                                        <p>{selectedAirplane.airplane_brand} {selectedAirplane.airplane_model_name}</p>
+                                        <p>{selectedAirplane.airplane_brand} {selectedAirplane.airplane_model_name} (plane id: {selectedAirplane.planeId})</p>
                                     </div>
                                     <div class="passangers-count-per-plane-capacity">
                                         <EventsAlt size={24} fill={iconsColor}/>

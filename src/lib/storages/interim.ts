@@ -24,7 +24,8 @@ export interface Route {
         start: string,
         end: string
     },
-    selectedAirplane: AirplaneModel,
+    /** Selected airplane with 'airplane_image' property and also additional 'planeId' field */
+    selectedAirplane: UserFleetTypeUnit & Pick<AirplaneModel, "airplane_image">,
     distanceBetweenPointsKm: number,
     durationOfTravelMins: number,
     status: "in way to" | "in way from" | "waiting for in way to" | "waiting for in way from"
