@@ -166,7 +166,14 @@
                                     </div>
                                     <div class="time-departure-arrival">
                                         <Time size={24} fill={iconsColor}/>
-                                        <p>{hours.start} - {Route.getArrivalHour(hours.start, durationOfTravelMins).getHrMin()} ({durationOfTravelMins} min)</p>
+                                        <p>
+                                            <!-- Determining by appropriate text elaboration time of travel depends on route status "to" or "from" destination point -->
+                                            {#if status == "in way to" || status == "waiting for in way to"}
+                                                {hours.start} - {Route.getArrivalHour(hours.start, durationOfTravelMins).getHrMin()}
+                                            {:else if status == "in way from" || status == "waiting for in way from"}
+                                                {hours.end} - {Route.getArrivalHour(hours.end, durationOfTravelMins).getHrMin()}
+                                            {/if} ({durationOfTravelMins} min)
+                                        </p>
                                     </div>
                                 </div>
                             </div>
