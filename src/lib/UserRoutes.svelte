@@ -196,6 +196,11 @@
                             </div>
                             {#if status.startsWith("waiting")}
                                 <button id="departure-fly" class:departure-fly-disabled={!Route.checkTimeForDeparture(hours, status)}>Depart ({status == "waiting for in way to" ? "to destination" : "from destination"})</button>
+                            {:else if status.startsWith("in way")}
+                                <button id="fly-in-process">
+                                    <p>Fly is in process</p>
+                                    <progress value="1" max="100"></progress>
+                                </button>
                             {/if}
                         </div>
                     {/each}
@@ -321,5 +326,20 @@
 
     .single-route > button#departure-fly.departure-fly-disabled {
         opacity: 0.5;
+    }
+
+    .single-route > button#fly-in-process {
+        width: 100%;
+        border: solid 1px rgb(26, 224, 255);
+        border-radius: 4px;
+        padding: 5px;
+        font-family: 'Roboto', sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        background-color: rgb(29, 192, 217);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 </style>
