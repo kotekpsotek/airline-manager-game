@@ -6,6 +6,7 @@
     import EditRoute from "$lib/submissions/EditRoute.svelte";
     import CreateRoute from "$lib/CreateRoute.svelte";
     import { PlanesList } from "./storages/planes";
+    import ProgressBar from "$lib/CustomElements/ProgressBar.svelte";
 
     const iconsColor = "green";
     let durningCreationOfNewRoute: boolean = false;
@@ -14,30 +15,28 @@
     const whenRouteSpawned = (node: HTMLElement, iterationOverRoutesId: number) => {
         const iteratedRouteObj = $userData!.routes[iterationOverRoutesId];
         
-        // When occupiedSeats count wasn't generated then generate it and assign to route as constant occupied seats value
         if (!iteratedRouteObj.occupiedSeats) {
             $userData!.routes[iterationOverRoutesId].occupiedSeats = Route.generateOccupiedPlaneSeatsCount(iteratedRouteObj.selectedAirplane)
         }
 
-        // Assign of how much percentage of route last from departure Date as percentage indicator (to determine it value) is using minutes required for one travel way
         if (iteratedRouteObj.status.startsWith("in way")) {
             /** Function to assign percentage determining how much percentage of route last from it departure time */
             const assignPercentage = () => {
                 // Obtain this element 'whenRouteSpawned' function 'node' param childrens elements for percentage indication
                 const percentageRouteFinalized = node.querySelector("#percentage-route-finalized");
-                const flyInProgressIndicator = (node.querySelector("#fly-progress-indicator") as HTMLProgressElement)
+                const flyInProgressIndicator = (node.querySelector(".progress-bar") as HTMLProgressElement)
     
                 // Calculate how much percent of route last from it departure time
-                const routePercentageFinalizedCalculated = Route.howMuchPercentageFromRouteDeparture(iteratedRouteObj);
+                const routePercentageFinalizedCalculated = Route.howMuchPercentageFromRouteDeparture(iteratedRouteObj).toFixed(1);
                 
                 // Assign calculated route last percentage indicator to element children nodes
-                percentageRouteFinalized!.textContent = String(routePercentageFinalizedCalculated);
-                flyInProgressIndicator.value = routePercentageFinalizedCalculated;
+                percentageRouteFinalized!.textContent = routePercentageFinalizedCalculated;
+                flyInProgressIndicator.setAttribute("data-value", routePercentageFinalizedCalculated);
             }
             assignPercentage();
     
             // Assign new percentage updated values for each 1 minute span to element children nodes
-            setInterval(assignPercentage, 1_000 * 60)
+            setInterval(assignPercentage, 60)
         }
 
         return {}
@@ -236,10 +235,12 @@
                             {#if status.startsWith("waiting")}
                                 <button id="departure-fly" class:departure-fly-disabled={!Route.checkTimeForDeparture(hours, status)} on:click={departureRoute(it_id)}>Depart ({status == "waiting for in way to" ? "to destination" : "from destination"})</button>
                             {:else if status.startsWith("in way")}
-                                <button id="fly-in-process">
-                                    <p>Fly is in process (<span id="percentage-route-finalized">0</span>%)</p>
-                                    <progress id="fly-progress-indicator" value="0" max="100"></progress>
-                                </button>
+                                <div class="fly-departured">
+                                    <button id="fly-in-process">
+                                        <p>Fly is in process (<span id="percentage-route-finalized">0</span>%)</p>
+                                    </button>
+                                    <ProgressBar/>
+                                </div>
                             {/if}
                         </div>
                     {/each}
@@ -367,10 +368,19 @@
         opacity: 0.5;
     }
 
-    .single-route > button#fly-in-process {
+    .single-route > div.fly-departured {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        row-gap: 1px;
+    }
+
+    .single-route > div.fly-departured button#fly-in-process {
         width: 100%;
         border: solid 1px rgb(26, 224, 255);
         border-radius: 4px;
+        border-bottom-right-radius: 0px;
+        border-bottom-left-radius: 0px;
         padding: 5px;
         font-family: 'Roboto', sans-serif;
         font-size: 15px;
