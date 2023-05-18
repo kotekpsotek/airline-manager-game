@@ -231,4 +231,15 @@ export class Route {
         // Return result of calculating
         return calculate;
     }
+
+    /** Determing how much percentage last from route departure time to now using minutes and depends on RouteType[durationOfTravelMins] property */
+    static howMuchPercentageFromRouteDeparture(route: RouteType) {
+        const dateNw = Date.now();
+        const startDateMilis = route.inWay!.start.getTime();
+        const arrivalDateMilis = route.inWay!.end.getTime();
+        const howMuchMinutesLastFromStartToNow = (dateNw - startDateMilis) / 1_000 / 60
+
+        // Calculate Percentage from time whose last from route departure
+        return dateNw > arrivalDateMilis ? 100 : howMuchMinutesLastFromStartToNow / (route.durationOfTravelMins / 100);
+    }
 }

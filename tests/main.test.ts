@@ -1,7 +1,7 @@
 import { describe, test, assert } from "vitest";
 import { Route, calculateDate } from "$lib/api";
 import { PlanesList } from "$lib/storages/planes";
-import type { UserData } from "$lib/storages/interim";
+import type { UserData, Route as RouteType } from "$lib/storages/interim";
 
 describe("api tests", () => {
     test("get arrival time for route", () => {
@@ -45,5 +45,17 @@ describe("api tests", () => {
     test("Occupied count of plane seats for route", () => {
         const count = Route.generateOccupiedPlaneSeatsCount({ airplane_specification: { max_passangers: 130 }} as any);
         console.log(`Occupied count of planes seats for route is ${count}`);
+    })
+
+    test("How much time last from route departure date", () => {
+        const routeEx: Partial<RouteType> = {
+            durationOfTravelMins: 20,
+            inWay: {
+                start: new Date(),
+                end: new Date(Date.now() + 20 * 60 * 1_000),
+            }
+        };
+        const percentageLast = Route.howMuchPercentageFromRouteDeparture(routeEx as any);
+        console.log(percentageLast)
     })
 })

@@ -30,7 +30,12 @@ export interface Route {
     durationOfTravelMins: number,
     status: "in way to" | "in way from" | "waiting for in way to" | "waiting for in way from"
     /** How many seats are reserved by passangers */
-    occupiedSeats?: number
+    occupiedSeats?: number,
+    /** When user departure route and can do it this property will appear */
+    inWay?: {
+        start: Date,
+        end: Date
+    }
 }
 
 export type UserData = {

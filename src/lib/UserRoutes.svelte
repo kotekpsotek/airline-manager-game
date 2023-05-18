@@ -129,6 +129,24 @@
             durningCreationOfNewRoute = false;
         })
     }
+
+    /** When user click on "Departure" button then departured route is marked as departured */
+    function departureRoute(it_id: number) {
+        const route = $userData!.routes[it_id];
+        return (ev: Event) => {
+            $userData!.routes[it_id].status = (route.status == "waiting for in way to") ? "in way to" : "in way from";
+
+            const getArriveDate = () => {
+                const dn = new Date();
+                const dnMilis = dn.getTime();
+                return new Date(dnMilis + $userData!.routes[it_id].durationOfTravelMins * 60 * 1_000);
+            }
+            $userData!.routes[it_id].inWay = {
+                start: new Date(),
+                end: getArriveDate(),
+            }
+        }
+    }
 </script>
 
 {#if !durningCreationOfNewRoute}
@@ -195,11 +213,11 @@
                                 </div>
                             </div>
                             {#if status.startsWith("waiting")}
-                                <button id="departure-fly" class:departure-fly-disabled={!Route.checkTimeForDeparture(hours, status)}>Depart ({status == "waiting for in way to" ? "to destination" : "from destination"})</button>
+                                <button id="departure-fly" class:departure-fly-disabled={!Route.checkTimeForDeparture(hours, status)} on:click={departureRoute(it_id)}>Depart ({status == "waiting for in way to" ? "to destination" : "from destination"})</button>
                             {:else if status.startsWith("in way")}
                                 <button id="fly-in-process">
-                                    <p>Fly is in process</p>
-                                    <progress value="1" max="100"></progress>
+                                    <p>Fly is in process (<span id="percentage-route-finalized">0</span>%)</p>
+                                    <progress id="fly-progress-indicator" value="0" max="100"></progress>
                                 </button>
                             {/if}
                         </div>
