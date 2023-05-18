@@ -18,7 +18,28 @@
         if (!iteratedRouteObj.occupiedSeats) {
             $userData!.routes[iterationOverRoutesId].occupiedSeats = Route.generateOccupiedPlaneSeatsCount(iteratedRouteObj.selectedAirplane)
         }
-        
+
+        // Assign of how much percentage of route last from departure Date as percentage indicator (to determine it value) is using minutes required for one travel way
+        if (iteratedRouteObj.status.startsWith("in way")) {
+            /** Function to assign percentage determining how much percentage of route last from it departure time */
+            const assignPercentage = () => {
+                // Obtain this element 'whenRouteSpawned' function 'node' param childrens elements for percentage indication
+                const percentageRouteFinalized = node.querySelector("#percentage-route-finalized");
+                const flyInProgressIndicator = (node.querySelector("#fly-progress-indicator") as HTMLProgressElement)
+    
+                // Calculate how much percent of route last from it departure time
+                const routePercentageFinalizedCalculated = Route.howMuchPercentageFromRouteDeparture(iteratedRouteObj);
+                
+                // Assign calculated route last percentage indicator to element children nodes
+                percentageRouteFinalized!.textContent = String(routePercentageFinalizedCalculated);
+                flyInProgressIndicator.value = routePercentageFinalizedCalculated;
+            }
+            assignPercentage();
+    
+            // Assign new percentage updated values for each 1 minute span to element children nodes
+            setInterval(assignPercentage, 1_000 * 60)
+        }
+
         return {}
     }
 
