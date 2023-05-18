@@ -89,6 +89,17 @@ export const userData = (function() {
                     storeData = JSON.parse(browswerStorageData);
                 }
 
+                // Parsing each Date property field from 'storeData' again to JavaScript Date class instance
+                storeData?.routes.forEach((val, id) => {
+                    if (storeData?.routes[id].inWay) {
+                        storeData!.routes[id].inWay = {
+                            ...storeData?.routes[id].inWay,
+                            start: new Date(storeData!.routes[id].inWay!.start),
+                            end: new Date(storeData!.routes[id].inWay!.end)
+                        }
+                    }
+                })
+
                 return storeData;
             })
         }
