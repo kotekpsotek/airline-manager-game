@@ -2,9 +2,10 @@
     import { Store, Plane, FlightInternational, ChartLine } from "carbon-icons-svelte"
     import PlanesMarket from "$lib/PlanesMarket.svelte";
     import UserRoutes from "$lib/UserRoutes.svelte";
+    import UserPlanesFleet from "$lib/UserPlanesFleet.svelte";
 
     let iconsSize = 28 as 24 | 32;
-    let statusDisplaying: "planes-market" | "user-routes" | null = null;
+    let statusDisplaying: "planes-market" | "user-routes" | "user fleet" | null = null;
 
     /** Clear application main field element = place where all other components of application will be adding or are added */
     function clearMainAppFieldFromAnyComponents() {
@@ -60,13 +61,32 @@
             clearMainAppFieldFromAnyComponents();
         }
     }
+
+    /** Create GUI overview for user planes fleet by spawning GUI html component */
+    function createFleetList(ev: Event) {
+        if (statusDisplaying != "user fleet") {
+            // Clear other components spawned prior
+            clearMainAppFieldFromAnyComponents();
+
+            // Add planes fleet when user already is not displaying it
+            statusDisplaying = "user fleet";
+
+            const userFleet = new UserPlanesFleet({
+                target: document.getElementsByClassName("map")[0]
+            })
+        } 
+        else {
+            // Destroy planes market component and reset it status when user already is displaying it
+            clearMainAppFieldFromAnyComponents();
+        }
+    }
 </script>
 
 <div class="options-stripe">
     <button id="market" title="market" on:click={createPlanesMarket}>
         <Store size={iconsSize}/>
     </button>
-    <button id="fleet" title="fleet">
+    <button id="fleet" title="fleet" on:click={createFleetList}>
         <Plane size={iconsSize}/>
     </button>
     <button id="routes" title="routes" on:click={createRoutesList}>

@@ -3,6 +3,7 @@ import { Loader } from "@googlemaps/js-api-loader";
 import { browser } from "$app/environment";
 import type { UserFleetTypeUnit, Route as RouteType } from "./storages/interim";
 import type { AirplaneModel } from "./storages/planes";
+import type { UserData } from "$lib/storages/interim";
 
 /** Loaded google maps api by authorization */
 export const mapLoader = async function() {
@@ -241,5 +242,22 @@ export class Route {
 
         // Calculate Percentage from time whose last from route departure
         return dateNw > arrivalDateMilis ? 100 : howMuchMinutesLastFromStartToNow / (route.durationOfTravelMins / 100);
+    }
+
+    /** Determine whether plane with specified 'planeId' is assigned to any route and when is return route 'routeId' (identifier) and 'routeDestination' route destination points */
+    static planeIsAssignedToRoute(planeId: UserFleetTypeUnit["planeId"], routes: UserData["routes"]) {
+        let planeRoute: false | [RouteType["routeId"], RouteType["routeDestinations"]] = false;
+
+        for (const route of routes) {
+            const { routeId, routeDestinations, selectedAirplane } = route;
+            const { planeId: planeIdItRoute } = selectedAirplane;
+
+            if (planeIdItRoute == planeId) {
+                planeRoute = [routeId, routeDestinations];
+                break;
+            }
+        }
+
+        return planeRoute;
     }
 }
