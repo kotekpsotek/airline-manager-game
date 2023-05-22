@@ -19,7 +19,17 @@
             $userData!.routes[iterationOverRoutesId].occupiedSeats = Route.generateOccupiedPlaneSeatsCount(iteratedRouteObj.selectedAirplane)
         }
 
-        if (iteratedRouteObj.status.startsWith("in way")) {
+        /** Stores result of call setInterval function from inside 'when' functions sort and all enrolled with it required functionalities */
+        let functionalInterval: { interval: NodeJS.Timer | undefined, clearInterval: () => void } = {
+            /** Representing undefined value or setInterval function call result */
+            interval: undefined,
+            /** Clear this.interval when it exists (isn't equal to undefined) */
+            clearInterval() {
+                if (this.interval) clearInterval(this.interval);
+            }
+        };
+        /** Called each time when route should be or is way to destination point */
+        const whenInWay = () => {
             /** Function to assign percentage determining how much percentage of route last from it departure time */
             const assignPercentage = () => {
                 // Obtain this element 'whenRouteSpawned' function 'node' param childrens elements for percentage indication
@@ -29,15 +39,50 @@
                 // Calculate how much percent of route last from it departure time
                 const routePercentageFinalizedCalculated = Route.howMuchPercentageFromRouteDeparture(iteratedRouteObj).toFixed(1);
                 
-                // Assign calculated route last percentage indicator to element children nodes
-                percentageRouteFinalized!.textContent = routePercentageFinalizedCalculated;
-                flyInProgressIndicator.setAttribute("data-value", routePercentageFinalizedCalculated);
+                // When percentage achives some point
+                if (routePercentageFinalizedCalculated.includes("100")) {
+                    // When percentage to route finalization is 100% assign status 'waiting in way ..' to appropriate backward destination point
+                    const dApWaitingForStatus: RouteType["status"] = $userData!.routes[iterationOverRoutesId].status == "in way from" ? "waiting for in way to" : "waiting for in way from"; // determine appropriate waiting status using actual 'in way ..' status
+                    $userData!.routes[iterationOverRoutesId].status = dApWaitingForStatus; // assign determined 'waiting for in way ..' to destination point status
+
+                    // When functional interval exists then clear it
+                    functionalInterval.clearInterval();
+                } else {
+                    // When percentage status of route finalization is smaller then 100% assign calculated route last percentage indicator to element children nodes
+                    percentageRouteFinalized!.textContent = routePercentageFinalizedCalculated.includes(String(100)) ? "100" : routePercentageFinalizedCalculated;
+                    flyInProgressIndicator.setAttribute("data-value", routePercentageFinalizedCalculated);
+                }
             }
             assignPercentage();
     
             // Assign new percentage updated values for each 1 minute span to element children nodes
-            setInterval(assignPercentage, 60)
+            functionalInterval.interval = setInterval(assignPercentage, 60_000)
         }
+        /** Called each time when route waits for departure date to be departured */
+        const whenWaiting = () => {
+            functionalInterval.interval = setInterval(() => {
+                // When route can be now departured
+                if (Route.checkTimeForDeparture(iteratedRouteObj.hours, iteratedRouteObj.status)) {
+                    $userData!.routes[iterationOverRoutesId].status = ($userData!.routes[iterationOverRoutesId].status == "waiting for in way from") ? "in way from" : "in way to"
+                    
+                    // When functional interval exists then clear it
+                    functionalInterval.clearInterval();
+                }
+            }, 1_000);
+        }
+
+        // Checking loop
+        const chCkFn = () => {
+            if (iteratedRouteObj.status.startsWith("in way")) {
+                // When route should be or is in way to responsible destination route point
+                whenInWay();
+            } else {
+                // Check whether route can be now departured
+                whenWaiting();
+            }
+        }
+        chCkFn(); // Function to check initial call
+        setInterval(chCkFn, 10_000); // for every 10 seconds check will be performing
 
         return {}
     }
@@ -154,16 +199,19 @@
     function departureRoute(it_id: number) {
         const route = $userData!.routes[it_id];
         return (ev: Event) => {
-            $userData!.routes[it_id].status = (route.status == "waiting for in way to") ? "in way to" : "in way from";
-
-            const getArriveDate = () => {
-                const dn = new Date();
-                const dnMilis = dn.getTime();
-                return new Date(dnMilis + $userData!.routes[it_id].durationOfTravelMins * 60 * 1_000);
-            }
-            $userData!.routes[it_id].inWay = {
-                start: new Date(),
-                end: getArriveDate(),
+            // Route can be only departured when departure date is achived (this is determined by class and can be by method from 'Route' class, althought html class is sufficient for this purpose)
+            if (!(ev.currentTarget as HTMLElement).classList.contains("departure-fly-disabled")) {
+                $userData!.routes[it_id].status = (route.status == "waiting for in way to") ? "in way to" : "in way from";
+    
+                const getArriveDate = () => {
+                    const dn = new Date();
+                    const dnMilis = dn.getTime();
+                    return new Date(dnMilis + $userData!.routes[it_id].durationOfTravelMins * 60 * 1_000);
+                }
+                $userData!.routes[it_id].inWay = {
+                    start: new Date(),
+                    end: getArriveDate(),
+                }
             }
         }
     }
