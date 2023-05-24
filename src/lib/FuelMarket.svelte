@@ -23,7 +23,7 @@
 
         /// Define options for chart element
         const options = {
-            title: `Price of Fuel from last Week (${dateAndPrices[dateAndPrices.length - 8]?.[0]} - ${dateAndPrices[dateAndPrices.length - 1]?.[0]})`,
+            title: `Price of Fuel from last Week (${dateAndPrices[dateAndPrices.length - 8]?.[0]} - ${dateAndPrices[dateAndPrices.length - 1]?.[0]}), determined in $`,
             bar: { 
                 groupWidth: `50%`
             },

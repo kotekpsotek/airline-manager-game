@@ -48,7 +48,7 @@ export const fuelMarketPrices = (function () {
             newPrice = Number(newPrice.toFixed(2));
 
             // When price is smaller then the minimum price assign to current price variable new generated fuel price by recall function itself
-            newPrice < minimumFuelPrice ? newPrice = generateNewFuelPrice() : null; 
+            newPrice < minimumFuelPrice ? newPrice = Number(generateNewFuelPrice().toFixed(2)) : null; 
 
             // Return generated new price
             return newPrice;
@@ -71,8 +71,30 @@ export const fuelMarketPrices = (function () {
             return (price as any) as FuelPrice;
         }
 
-        // Generate fuel price and add it to fuel prices store only when for this date hasn't been generated price yet
+        // Adjust store when this is needed or perform nothign when it isn't
         store.update(prices => {
+            // Do specific action regard to prices list size
+            if (prices.length < 6) {
+                // Fill to 6 days back when storage is smaller then 7 days
+                for (let i = 6; i > 0; i--) {
+                    // Determine date
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+
+                    // Add new fuel price to prices list from fuel market for determined above date
+                    const fuelPriceObj: FuelPrice = {
+                        date,
+                        price: generateNewFuelPrice()
+                    }
+                    prices.push(fuelPriceObj);
+                }
+            }
+            else if (prices.length > 7) {
+                // Delete first price because it is outdated in our order is to prsent prices from last 7 days (1 week) and no more
+                prices.splice(0, prices.length - 7); 
+            }
+            
+            // Generate fuel price and add it to fuel prices store only when for this date hasn't been generated price yet
             const chckCond = prices.some(price => {
                 const { date } = price;
                 const dateParsedOfPrice = new Date(date).toDateString();
