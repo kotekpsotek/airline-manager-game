@@ -54,6 +54,23 @@ export const fuelMarketPrices = (function () {
             return newPrice;
         }
 
+        /** Get current (today) price for fuel. **Warning**: When function will be call before generation new price for this date error will be returned */
+        function getCurrentPrice(): FuelPrice | never {
+            const dateToDay = new Date().toDateString();
+            let price: FuelPrice | undefined = undefined;
+            store.update(prices => {
+                const tryFind = prices.find(priceObj => new Date(priceObj.date).toDateString() == dateToDay);
+
+                if (!tryFind) throw new Error("Could not get actual price before it generation");
+
+                price = tryFind;
+
+                return prices
+            });
+
+            return (price as any) as FuelPrice;
+        }
+
         // Generate fuel price and add it to fuel prices store only when for this date hasn't been generated price yet
         store.update(prices => {
             const chckCond = prices.some(price => {
@@ -88,7 +105,8 @@ export const fuelMarketPrices = (function () {
 
         return {
             ...store,
-            generateNewFuelPrice
+            generateNewFuelPrice,
+            getCurrentPrice
         }
     }
 })()
