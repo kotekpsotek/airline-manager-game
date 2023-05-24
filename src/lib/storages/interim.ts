@@ -58,7 +58,9 @@ export type UserData = {
     /** List of user airline routes routes */
     routes: Route[],
     /** Account balance in dolars */
-    balance: number 
+    balance: number,
+    /** user fuel stores in (liters unit). When doesn't exists so = undefined this is equal in meaning that user has got 0 liters of air-fuel */
+    fuel?: number
 }
 export const userData = (function() {
     const store = writable<UserData | null>(null);
