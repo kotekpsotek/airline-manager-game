@@ -1,6 +1,7 @@
 <script lang="ts">
     import { UserAvatarFilled } from "carbon-icons-svelte";
     import { userData as userD } from "$lib/storages/interim";
+    import Bank from "$lib/Bank.svelte";
 
     /** Format account balance to format in which each 3 digits are separated by whitespace. Example for number: 50000 will be: 50 000 */
     function formatedAccountBalance() {
@@ -10,11 +11,21 @@
 
         return balanceSeparated += step1[1] ? "." + step1[1] : "";
     }
+
+    /** Create Bank component and add it to user view ('Bank.svelte') */
+    function goToBank(ev: Event) {
+        const bankComponent = new Bank({
+            target: document.getElementsByClassName("map")[0]
+        });
+
+        // When user decide to close bank side then perform that request
+        bankComponent.$on("close", () => bankComponent.$destroy())
+    }
 </script>
 
 <div class="upper-bar">
     <button id="blank"></button> <!-- Required to create eligable place adjustment for elements -->
-    <button id="account-balance" title="Account balance: {$userD ? formatedAccountBalance() : 0}$">
+    <button id="account-balance" title="Account balance: {$userD ? formatedAccountBalance() : 0}$" on:click={goToBank}>
         <p>{$userD ? formatedAccountBalance() : 0} $</p>
     </button>
     <button id="account" title="Your Account">
