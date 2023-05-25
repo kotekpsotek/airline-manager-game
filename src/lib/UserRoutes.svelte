@@ -7,6 +7,7 @@
     import CreateRoute from "$lib/CreateRoute.svelte";
     import { PlanesList } from "./storages/planes";
     import ProgressBar from "$lib/CustomElements/ProgressBar.svelte";
+    import { fuelMarketPrices } from "$lib/storages/fuelmarket";
 
     const iconsColor = "green";
     let durningCreationOfNewRoute: boolean = false;
@@ -201,13 +202,45 @@
         return (ev: Event) => {
             // Route can be only departured when departure date is achived (this is determined by class and can be by method from 'Route' class, althought html class is sufficient for this purpose)
             if (!(ev.currentTarget as HTMLElement).classList.contains("departure-fly-disabled")) {
+                // Change status of route after when was departured
                 $userData!.routes[it_id].status = (route.status == "waiting for in way to") ? "in way to" : "in way from";
+
+                // Calculations and obtains for operation over fuel required to departure route
+                const requiredFuelAmountLitters = PlanesList.calculateFuelRequirements(route.distanceBetweenPointsKm, route.selectedAirplane);
+                const currentFuelPrice = fuelMarketPrices!.getCurrentPrice().price;
+
+                // When user don't have enought fuel buy required amount of fuel to full fill it or when user has got enought then use it
+                if (($userData?.fuel || 0) < requiredFuelAmountLitters) {
+                    // Buy fuel when user don't have enought fuel to departure route
+                    const priceForFuel = currentFuelPrice * (requiredFuelAmountLitters - ($userData!.fuel || 0));
+                    const conf = confirm(`You don't have got required ${requiredFuelAmountLitters} liters of fuel? Would you like to buy it for ${priceForFuel} (${currentFuelPrice}/l)`)
+
+                    // Only when user add permision to buy fuel, fuel can be bought
+                    if (conf) {
+                        // Buy fuel only when user has got enought money
+                        if ($userData!.balance >= priceForFuel) {
+                            // Bought fuel and remove from user account money for fuel
+                            $userData!.balance -= priceForFuel; 
+                        }
+                        else alert("You don't have got enought money to buy fuel!")
+                    }
+                }
+                else {
+                    // Use fuel which user has got (here 'fuel' field must exists on userData storage)
+                    ($userData!.fuel as number) -= requiredFuelAmountLitters;
+                }
     
+                // Add to user account balance income from tickets for route
+                $userData!.balance += route.pricePerSeat * (route.occupiedSeats as number);
+                
+                // Calculate route arrive date
                 const getArriveDate = () => {
                     const dn = new Date();
                     const dnMilis = dn.getTime();
                     return new Date(dnMilis + $userData!.routes[it_id].durationOfTravelMins * 60 * 1_000);
                 }
+
+                // Add to route inWay field object with fullfilled nested fields
                 $userData!.routes[it_id].inWay = {
                     start: new Date(),
                     end: getArriveDate(),
