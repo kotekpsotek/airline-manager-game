@@ -31,6 +31,8 @@ export interface Route {
     status: "in way to" | "in way from" | "waiting for in way to" | "waiting for in way from"
     /** How many seats are reserved by passangers */
     occupiedSeats?: number,
+    /** Price per one seat in plane in $ (**USD**) unit */
+    pricePerSeat: number,
     /** When user departure route and can do it this property will appear */
     inWay?: {
         start: Date,

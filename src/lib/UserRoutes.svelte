@@ -2,7 +2,7 @@
     import { PUBLIC_MAP_ID } from "$env/static/public";
     import { Route, mapLoader } from "$lib/api";
     import { userData, type Route as RouteType } from "$lib/storages/interim";
-    import { PlanePrivate, Arrival, Departure, Identification, Time, Edit, EventsAlt, FlowData, CalendarAdd, GasStation } from "carbon-icons-svelte";
+    import { PlanePrivate, Arrival, Departure, Identification, Time, Edit, EventsAlt, FlowData, CalendarAdd, GasStation, Currency } from "carbon-icons-svelte";
     import EditRoute from "$lib/submissions/EditRoute.svelte";
     import CreateRoute from "$lib/CreateRoute.svelte";
     import { PlanesList } from "./storages/planes";
@@ -229,7 +229,7 @@
             {#if $userData}
                 {#if $userData.routes?.length}
                     <!-- Spawn each user airline route by iterating over user airline routes array -->
-                    {#each $userData.routes as { routeId, routeDestinations, selectedAirplane, hours, durationOfTravelMins, distanceBetweenPointsKm, status, occupiedSeats }, it_id}
+                    {#each $userData.routes as { routeId, routeDestinations, selectedAirplane, hours, durationOfTravelMins, distanceBetweenPointsKm, status, occupiedSeats, pricePerSeat }, it_id}
                         <div class="single-route" use:whenRouteSpawned={it_id}>
                             <button class="edit" title="Edit route" on:click={editRoute(it_id)}>
                                 <Edit size={24} fill="red"/>
@@ -277,6 +277,10 @@
                                     <div class="fuel-consumption" title="Fuel consumption per one way for this route">
                                         <GasStation size={24} fill={iconsColor}/>
                                         <p>{PlanesList.calculateFuelRequirements(distanceBetweenPointsKm, selectedAirplane).toFixed(0)} l</p>
+                                    </div>
+                                    <div class="income-from-route" title="Income from route (in $ (USD))">
+                                        <Currency size={24} fill={iconsColor}/>
+                                        <p>{pricePerSeat * (occupiedSeats || 0)} $</p>
                                     </div>
                                 </div>
                             </div>

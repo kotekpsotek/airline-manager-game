@@ -33,6 +33,7 @@
         start: "",
         end: ""
     };
+    let priceForOneRouteSeat: number = 10; // Price for one seat in plane determined by user for creating route
     let selectedAirplaneData: UserFleetTypeUnit | undefined; // Selected airplane details
     let distanceBetweenPointsKm: number = 0; // Distance between points in kilometers 
     let durationOfTravelMins: number = 1; // duration of travel in minutes
@@ -194,7 +195,8 @@
                 selectedAirplane: selectedAirplaneData as any,
                 distanceBetweenPointsKm,
                 durationOfTravelMins,
-                status: "waiting for in way to"
+                status: "waiting for in way to",
+                pricePerSeat: priceForOneRouteSeat
             } satisfies RouteType;
 
             // Emit event to component caller
@@ -258,7 +260,16 @@
                     <input type="time" bind:value={hours.end}>
                 </div>
             </div>
-            {#key selectedPlaneModelName && routeData && hours || userFocusOnDestinationsInput}
+            <div class="price-for-seat">
+                <h2>Determine price for seats</h2>
+                <div class="price-for-seat-element">
+                    <div class="desc">
+                        <p>Price for one seat ($ = USD)</p>
+                    </div>
+                    <input type="number" min="10" bind:value={priceForOneRouteSeat}>
+                </div>
+            </div>
+            {#key selectedPlaneModelName && routeData && priceForOneRouteSeat && hours || userFocusOnDestinationsInput}
                 {#if routeDetermined()}
                     <div class="route-determined-details">
                         <div class="map">
@@ -299,6 +310,10 @@
                                 <tr>
                                     <td>Arrival hour</td>
                                     <td>{hours.end}</td>
+                                </tr>
+                                <tr>
+                                    <td>Price for one seat</td>
+                                    <td>{priceForOneRouteSeat} $</td>
                                 </tr>
                             </table>
                         </div>
@@ -417,6 +432,28 @@
     div.determining-start-hours div input[type*=time] {
         border-top-left-radius: 0px;
         border-bottom-left-radius: 0px;
+    }
+
+    div.price-for-seat-element {
+        display: flex;
+        align-items: center;
+    }
+
+    div.price-for-seat-element .desc {
+        margin-top: 5px;
+        padding: 5px;
+        border: solid 1px rgb(22, 115, 237);
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
+        background-color: rgb(22, 115, 237);
+        color: white;
+    }
+
+    div.price-for-seat-element input {
+        width: 75px;
+        border-top-left-radius: 0px;
+        border-bottom-left-radius: 0px;
+        text-align: center;
     }
 
     div.route-determined-details {
