@@ -2,6 +2,7 @@
     import { fuelMarketPrices } from "$lib/storages/fuelmarket";
     import { CloseFilled } from "carbon-icons-svelte";
     import { createEventDispatcher } from "svelte";
+    import { userData } from "$lib/storages/interim";
 
     // Events dispatcher for svelte app
     const evD = createEventDispatcher();
@@ -62,6 +63,30 @@
     function closeFuelMarket(ev: Event) {
         evD("close-fuel-market");
     }
+
+    /** When user click on button 'Buy fuel' in order to buy fuel */
+    function buyFuelEv(ev: Event) {
+        const fuelPrice = fuelLittersOrdering * currentFuelPrice;
+        
+        // Ask for permition to buy air-fuel
+        const conf = confirm(`Would you like spent ${fuelPrice}$ for ${fuelLittersOrdering}l of air fuel?`)
+
+        // Action will be performing only when user give permision into prompt
+        if (conf) {
+            // Actoion will be performing only when user has got enought money on account balance
+            if ($userData!.balance >= fuelPrice) {
+                // Remove amount of money from user balance
+                $userData!.balance -= fuelPrice;
+
+                // When fuel field hasn't been yet determined or from some reason doesn't exists
+                if (!$userData!.fuel) $userData!.fuel = 0;
+
+                // Add for user ordering fuel amount
+                $userData!.fuel += fuelLittersOrdering;
+            }
+            else alert("Couldn't perform action you haven't got enought money!")
+        }
+    }
 </script>
 
 <div class="fuel-market-component">
@@ -86,7 +111,7 @@
                     <button id="decline" on:click={() => buyFuel = false}>
                         Decline
                     </button>
-                    <button id="buy-fuel">
+                    <button id="buy-fuel" on:click={buyFuelEv}>
                         Buy fuel
                     </button>
                 </div>
