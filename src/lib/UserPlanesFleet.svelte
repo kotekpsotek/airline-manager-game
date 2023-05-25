@@ -3,6 +3,7 @@
     import { Route } from "$lib/api";
     import { GasStationFilled } from "carbon-icons-svelte";
     import FuelMarket from "$lib/FuelMarket.svelte";
+    import Page from "../routes/+page.svelte";
 
     /** Return formated name whether plane is assigned to any route and when is return formated name of route between points and route id into same string */
     function getAssignationRouteNameForGUI(planeId: string): string {
@@ -15,6 +16,9 @@
         const fuelMarket = new FuelMarket({
             target: document.getElementsByClassName("map")[0]
         });
+
+        /** When user click on close fuel market then handle closing fuel market procedure */
+        fuelMarket.$on("close-fuel-market", () => fuelMarket.$destroy())
     }
 </script>
 

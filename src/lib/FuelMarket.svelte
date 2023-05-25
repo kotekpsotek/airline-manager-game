@@ -1,5 +1,10 @@
 <script lang="ts">
     import { fuelMarketPrices } from "$lib/storages/fuelmarket";
+    import { CloseFilled } from "carbon-icons-svelte";
+    import { createEventDispatcher } from "svelte";
+
+    // Events dispatcher for svelte app
+    const evD = createEventDispatcher();
 
     // Load chart to html user view
     (google as any).charts.load("current", {packages:['corechart']});
@@ -40,7 +45,7 @@
     }
 
     // Whether user is now decided to buy fuel or not
-    let buyFuel: boolean = true;
+    let buyFuel: boolean = false;
     let fuelLittersOrdering: number = 1;
 
     // Get current prices data
@@ -48,9 +53,14 @@
 
     $: {
         buyFuel;
-
+        
         // Spawn chart when user would like to display soure of fuel market again after displaying other menu e.g: gui element to buy fuel
         (google as any).charts.setOnLoadCallback(drawChart);
+    }
+
+    /** After when click on 'Close fuel market icon' button was registred emit event about close demand to parent component of this */
+    function closeFuelMarket(ev: Event) {
+        evD("close-fuel-market");
     }
 </script>
 
@@ -86,6 +96,9 @@
         <!-- When user is viewing fuel market -->
         {#key fuelMarketPrices}
             <div class="fuel-market">
+                <button id="close-fuel-market" on:click={closeFuelMarket}>
+                    <CloseFilled size={24} fill="red"/>
+                </button>
                 <h1>Fuel Market</h1>
                 <div class="main">
                     <h3>Actual Fuel Price</h3>
@@ -129,6 +142,15 @@
         height: 100vh;
         background-color: whitesmoke;
         overflow: auto;
+    }
+
+    button#close-fuel-market {
+        width: 50px;
+        height: 50px;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: transparent;
     }
 
     /* Fuel market menu */
