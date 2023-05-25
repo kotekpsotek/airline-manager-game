@@ -64,7 +64,8 @@
             functionalInterval.interval = setInterval(() => {
                 // When route can be now departured
                 if (Route.checkTimeForDeparture(iteratedRouteObj.hours, iteratedRouteObj.status)) {
-                    $userData!.routes[iterationOverRoutesId].status = ($userData!.routes[iterationOverRoutesId].status == "waiting for in way from") ? "in way from" : "in way to"
+                    // $userData!.routes[iterationOverRoutesId].status = ($userData!.routes[iterationOverRoutesId].status == "waiting for in way from") ? "in way from" : "in way to" // FIXME: afford to use that after when on application exist option instant departure without user ingerention
+                    node.querySelector("button#departure-fly")?.classList.remove("departure-fly-disabled"); // allow user to departure fly manually by click on button which isn't from this step disabled
                     
                     // When functional interval exists then clear it
                     functionalInterval.clearInterval();
