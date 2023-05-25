@@ -89,7 +89,7 @@ export const fuelMarketPrices = (function () {
                     prices.push(fuelPriceObj);
                 }
             }
-            else if (prices.length > 7) {
+            else if ((prices.length + 1) > 7) {
                 // Delete first price because it is outdated in our order is to prsent prices from last 7 days (1 week) and no more
                 prices.splice(0, prices.length - 7); 
             }

@@ -125,9 +125,10 @@
     }
 
     div.map {
-        position: absolute;
+        position: relative;
         top: 50px;
         width: 100%;
         height: calc(100% - 100px); /* 100% of y axis view - 2 * height of stripes */
+        overflow: hidden;
     }
 </style>
