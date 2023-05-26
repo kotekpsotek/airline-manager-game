@@ -1,6 +1,6 @@
 <script lang="ts">
     import { PUBLIC_MAP_ID } from "$env/static/public";
-    import { Route, mapLoader } from "$lib/api";
+    import { Route, mapLoader, NotificationSender } from "$lib/api";
     import { userData, type Route as RouteType } from "$lib/storages/interim";
     import { PlanePrivate, Arrival, Departure, Identification, Time, Edit, EventsAlt, FlowData, CalendarAdd, GasStation, Currency } from "carbon-icons-svelte";
     import EditRoute from "$lib/submissions/EditRoute.svelte";
@@ -39,12 +39,15 @@
     
                 // Calculate how much percent of route last from it departure time
                 const routePercentageFinalizedCalculated = Route.howMuchPercentageFromRouteDeparture(iteratedRouteObj).toFixed(1);
-                
+
                 // When percentage achives some point
                 if (routePercentageFinalizedCalculated.includes("100")) {
                     // When percentage to route finalization is 100% assign status 'waiting in way ..' to appropriate backward destination point
                     const dApWaitingForStatus: RouteType["status"] = $userData!.routes[iterationOverRoutesId].status == "in way from" ? "waiting for in way to" : "waiting for in way from"; // determine appropriate waiting status using actual 'in way ..' status
                     $userData!.routes[iterationOverRoutesId].status = dApWaitingForStatus; // assign determined 'waiting for in way ..' to destination point status
+
+                    // Send notification that route was finalized
+                    new NotificationSender().whenRouteWasFinalized(iteratedRouteObj);
 
                     // When functional interval exists then clear it
                     functionalInterval.clearInterval();

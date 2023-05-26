@@ -261,3 +261,30 @@ export class Route {
         return planeRoute;
     }
 }
+
+/** Facilitate co-operation with notifications API */
+export class NotificationSender {
+    constructor() {
+        // Ask user for permission to use notification
+        if (Notification.permission != "granted") {
+            const askPermission = () => {
+                Notification.requestPermission()
+                    .then(permission => {
+                        if (permission != "granted") {
+                            askPermission();
+                        }
+                    })
+            };
+            askPermission();
+        }
+    }
+
+    /** Display notification when route was finalized */
+    whenRouteWasFinalized(route: RouteType) {
+        const notification = new Notification(`Route ${route.routeId} was finalized!`, {
+            body: `${route.routeDestinations.from.name} - ${route.routeDestinations.to.name}`,
+            icon: "/src/lib/assets/icons/route.png",
+            silent: true,
+        });
+    }
+}
