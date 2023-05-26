@@ -38,6 +38,20 @@ export const calculateDate = () => {
     return new Date(minsWithOffset * 60 * 1_000)
 }
 
+/** Clear application main field element = place where all other components of application will be adding or are added */
+export function clearMainAppFieldFromAnyComponents() {
+    // Get application main field what mean get place where all other application components will be spawning
+    const mainField = document.getElementsByClassName("map")[0];
+    
+    // List of childrens located into mainField
+    const mC = mainField.children;
+
+    // Itertate over childrens and remove each
+    for (const children of mC) {
+        children.remove();
+    }
+}
+
 /** Call one time to follow all operations in background */
 export function followInBackground() {
     // Follow user routes status

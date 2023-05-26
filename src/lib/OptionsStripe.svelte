@@ -3,26 +3,10 @@
     import PlanesMarket from "$lib/PlanesMarket.svelte";
     import UserRoutes from "$lib/UserRoutes.svelte";
     import UserPlanesFleet from "$lib/UserPlanesFleet.svelte";
+    import { clearMainAppFieldFromAnyComponents } from "$lib/api";
 
     let iconsSize = 28 as 24 | 32;
     let statusDisplaying: "planes-market" | "user-routes" | "user fleet" | null = null;
-
-    /** Clear application main field element = place where all other components of application will be adding or are added */
-    function clearMainAppFieldFromAnyComponents() {
-        // Reset status what component is actual displaying
-        statusDisplaying = null;
-        
-        // Get application main field what mean get place where all other application components will be spawning
-        const mainField = document.getElementsByClassName("map")[0];
-        
-        // List of childrens located into mainField
-        const mC = mainField.children;
-
-        // Itertate over childrens and remove each
-        for (const children of mC) {
-            children.remove();
-        }
-    }
 
     /** Create planes market = add it to main application field */
     function createPlanesMarket(ev: Event) {
@@ -40,6 +24,7 @@
         else {
             // Destroy planes market component and reset it status when user already is displaying it
             clearMainAppFieldFromAnyComponents();
+            statusDisplaying = null;
         }
     }
 
@@ -59,6 +44,7 @@
         else {
             // Destroy planes market component and reset it status when user already is displaying it
             clearMainAppFieldFromAnyComponents();
+            statusDisplaying = null;
         }
     }
 
@@ -78,6 +64,7 @@
         else {
             // Destroy planes market component and reset it status when user already is displaying it
             clearMainAppFieldFromAnyComponents();
+            statusDisplaying = null;
         }
     }
 </script>
