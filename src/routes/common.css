@@ -1,0 +1,16 @@
+/* Common css rules for foremost components writed using Svelte */
+h1, h2 {
+    color: rgb(22, 115, 237) !important;
+}
+
+button {
+    border: none;
+    outline: none;
+    background-color: transparent;
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+}
