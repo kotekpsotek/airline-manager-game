@@ -3,7 +3,9 @@
     import { Route } from "$lib/api";
     import { GasStationFilled } from "carbon-icons-svelte";
     import FuelMarket from "$lib/FuelMarket.svelte";
-    import Page from "../routes/+page.svelte";
+
+    // To not obtaining error about inaccurate size for carbon-design-system icon
+    const userFuelStatusIconSize = 28 as 32;
 
     /** Return formated name whether plane is assigned to any route and when is return formated name of route between points and route id into same string */
     function getAssignationRouteNameForGUI(planeId: string): string {
@@ -27,27 +29,48 @@
         <GasStationFilled size={24}/>
         <p>Fuel market</p>
     </button>
-    <h1>Your planes fleet</h1>
-    <h3>List</h3>
-    <div class="planes-list">
-        {#if $userData}
-            <table>
-                <tr>
-                    <th>No.</th>
-                    <th>Id</th>
-                    <th>Model</th>
-                    <th>Assigned to route</th>
-                </tr>
-                {#each $userData?.fleet as fleet_unit, it_id}
+    <div class="fuel-station">
+        <h2>Fuel station</h2>
+        <div class="fuel-status">
+            {#if $userData?.fuel}
+                <!--  -->
+                <div class="fuel">
+                    <img src="src/lib/assets/icons/fuel-tank-svgrepo-com.svg" alt="" style="width: 95px; height: 95px; filter: invert(20%) sepia(93%) saturate(6501%) hue-rotate(113deg) brightness(102%) contrast(103%);">
+                    <div class="fuel-status" title="Your fuel tank has got: {$userData.fuel}l of air fuel">
+                        <GasStationFilled size={userFuelStatusIconSize} fill="green"/>
+                        <p>{$userData.fuel.toFixed(2)}l</p>
+                    </div>
+                </div>
+            {:else}
+                <div class="lacking-with-fuel">
+                    <p>Your fuel storages are empty</p>
+                </div>
+            {/if}
+        </div>
+    </div>
+    <div class="planes-fleet">
+        <h1>Your planes fleet</h1>
+        <h3>List</h3>
+        <div class="planes-list">
+            {#if $userData}
+                <table>
                     <tr>
-                        <td class="no">{it_id + 1}</td>
-                        <td style:color="green">{fleet_unit.planeId}</td>
-                        <td>{fleet_unit.airplane_brand} {fleet_unit.airplane_model_name}</td>
-                        <td>{@html getAssignationRouteNameForGUI(fleet_unit.planeId)}</td>
+                        <th>No.</th>
+                        <th>Id</th>
+                        <th>Model</th>
+                        <th>Assigned to route</th>
                     </tr>
-                {/each}
-            </table>
-        {/if}
+                    {#each $userData?.fleet as fleet_unit, it_id}
+                        <tr>
+                            <td class="no">{it_id + 1}</td>
+                            <td style:color="green">{fleet_unit.planeId}</td>
+                            <td>{fleet_unit.airplane_brand} {fleet_unit.airplane_model_name}</td>
+                            <td>{@html getAssignationRouteNameForGUI(fleet_unit.planeId)}</td>
+                        </tr>
+                    {/each}
+                </table>
+            {/if}
+        </div>
     </div>
 </div>
 
@@ -74,6 +97,39 @@
         color: green;
         font-family: 'Roboto', sans-serif;
         cursor: pointer;
+    }
+
+    div.fuel-station {
+        display: flex;
+        flex-direction: column;
+        row-gap: 5px;
+    }
+
+    div.fuel-station h2 {
+        color: green;
+    }
+
+    div.fuel-station div.fuel-status {
+        display: flex;
+        justify-content: center;
+    }
+
+    div.fuel-status .fuel .fuel-status {
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        column-gap: 5px;
+        color: green;
+    }
+
+    div.fuel-status .lacking-with-fuel {
+        width: 100%;
+        height: 100px;
+        color: red;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     h1, h3 {
