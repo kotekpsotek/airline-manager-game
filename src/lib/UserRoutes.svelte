@@ -43,7 +43,7 @@
                 // When percentage achives some point
                 if (routePercentageFinalizedCalculated.includes("100")) {
                     // When percentage to route finalization is 100% assign status 'waiting in way ..' to appropriate backward destination point
-                    const dApWaitingForStatus: RouteType["status"] = $userData!.routes[iterationOverRoutesId].status == "in way from" ? "waiting for in way to" : "waiting for in way from"; // determine appropriate waiting status using actual 'in way ..' status
+                    const dApWaitingForStatus: RouteType["status"] = Route.determineNewStatusFromInWayToWaitingFor($userData!.routes[iterationOverRoutesId]); // determine appropriate waiting status using actual 'in way ..' status
                     $userData!.routes[iterationOverRoutesId].status = dApWaitingForStatus; // assign determined 'waiting for in way ..' to destination point status
 
                     // Send notification that route was finalized

@@ -59,6 +59,9 @@ export function followInBackground() {
         userData.update(uData => {
             // Execute only when user datas are defined
             if (uData) {
+                // Index of iteration
+                let indexIterated = 0;
+
                 // Iterate over all user routes
                 for (const route of uData!.routes) {
                     const { inWay, status } = route;
@@ -70,8 +73,12 @@ export function followInBackground() {
                         // When routes ends (what is determined using percentage status of persisting route (route which is in way)) send to user notification about it
                         if (routePercentage.split(".")[0].includes("100")) {
                             new NotificationSender().whenRouteWasFinalized(route);
+                            uData.routes[indexIterated].status = Route.determineNewStatusFromInWayToWaitingFor(uData.routes[indexIterated])
                         }
                     }
+
+                    // Increase index of iterated number
+                    indexIterated++;
                 }
             }
 
@@ -302,6 +309,11 @@ export class Route {
         }
 
         return planeRoute;
+    }
+
+    /** This function is for determine new "waiting for .." status using for this status "in way .." from @param route 'status' field */
+    static determineNewStatusFromInWayToWaitingFor(route: RouteType) {
+        return route.status == "in way from" ? "waiting for in way to" : "waiting for in way from"
     }
 }
 
