@@ -2,6 +2,7 @@
     import { UserAvatarFilled } from "carbon-icons-svelte";
     import { userData as userD } from "$lib/storages/interim";
     import Bank from "$lib/Bank.svelte";
+    import { clearMainAppFieldFromAnyComponents } from "$lib/api"
 
     /** Format account balance to format in which each 3 digits are separated by whitespace. Example for number: 50000 will be: 50 000 */
     function formatedAccountBalance() {
@@ -14,6 +15,10 @@
 
     /** Create Bank component and add it to user view ('Bank.svelte') */
     function goToBank(ev: Event) {
+        // Clear view before create Bank Component and add it to view
+        clearMainAppFieldFromAnyComponents();
+        
+        // Spawn Bank component
         const bankComponent = new Bank({
             target: document.getElementsByClassName("map")[0]
         });

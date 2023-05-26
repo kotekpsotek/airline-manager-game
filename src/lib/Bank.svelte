@@ -2,6 +2,7 @@
     import { Money, Finance } from "carbon-icons-svelte";
     import CloseButton from "$lib/CustomElements/CloseButton.svelte";
     import commonCSS from "$lib/../routes/common.css";
+    import BankCreditOptions from "$lib/submissions/BankCreditOptions.svelte";
 
     let selectedBankOption: "credit" | undefined;
 </script>
@@ -26,7 +27,8 @@
         </div>
     </div>
 {:else if selectedBankOption == "credit"}
-    <!-- Here will be option when user can take credit or pay off already existing credit -->
+    <!-- Here is option untoggled when user can take credit or pay off already existing credit -->
+    <BankCreditOptions on:close={() => selectedBankOption = undefined}/>
 {/if}
 
 <style>
