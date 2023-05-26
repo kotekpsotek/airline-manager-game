@@ -7,8 +7,11 @@
     import UpperStripe from "$lib/UpperStripe.svelte";
     import PlanesMarket from "$lib/PlanesMarket.svelte";
     import CreateRoute from "$lib/CreateRoute.svelte";
-    import { mapLoader } from "$lib/api";
+    import { mapLoader, followInBackground } from "$lib/api";
     import { userData as data, type UserData, type Route } from "$lib/storages/interim";
+
+    // Follow some required things in background
+    followInBackground();
 
     async function addMap() {
         // Example location

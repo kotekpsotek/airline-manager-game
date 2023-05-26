@@ -1,6 +1,7 @@
 import { PUBLIC_MAP_API_KEY } from "$env/static/public";
 import { Loader } from "@googlemaps/js-api-loader";
 import { browser } from "$app/environment";
+import { userData } from "$lib/storages/interim";
 import type { UserFleetTypeUnit, Route as RouteType } from "./storages/interim";
 import type { AirplaneModel } from "./storages/planes";
 import type { UserData } from "$lib/storages/interim";
@@ -35,6 +36,34 @@ export const calculateDate = () => {
     const minsNow = dn.getTime() / 1_000 / 60;
     const minsWithOffset = dn.getTimezoneOffset() < 0 ? minsNow + (dn.getTimezoneOffset() * -1) : minsNow + dn.getTimezoneOffset();
     return new Date(minsWithOffset * 60 * 1_000)
+}
+
+/** Call one time to follow all operations in background */
+export function followInBackground() {
+    // Follow user routes status
+    setInterval(() => {
+        userData.update(uData => {
+            // Execute only when user datas are defined
+            if (uData) {
+                // Iterate over all user routes
+                for (const route of uData!.routes) {
+                    const { inWay, status } = route;
+
+                    // Measure percentage only for persisting routes
+                    if (inWay && status.startsWith("in way")) {
+                        const routePercentage = String(Route.howMuchPercentageFromRouteDeparture(route));
+
+                        // When routes ends (what is determined using percentage status of persisting route (route which is in way)) send to user notification about it
+                        if (routePercentage.split(".")[0].includes("100")) {
+                            new NotificationSender().whenRouteWasFinalized(route);
+                        }
+                    }
+                }
+            }
+
+            return uData;
+        })
+    }, 10_000); // Check will be performing between 30 seconds gaps
 }
 
 /** Class for operations over airports and it's data */
