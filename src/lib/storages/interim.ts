@@ -40,6 +40,11 @@ export interface Route {
     }
 }
 
+/** Incudes all information about user interaction with bank */
+interface BankData {
+    credits: { releaseDate: Date, interestRatePerDay: number, amount: number }[]
+}
+
 export type UserData = {
     /** User name which don't have to be user email */
     userName: string,
@@ -62,7 +67,9 @@ export type UserData = {
     /** Account balance in dolars */
     balance: number,
     /** user fuel stores in (liters unit). When doesn't exists so = undefined this is equal in meaning that user has got 0 liters of air-fuel */
-    fuel?: number
+    fuel?: number,
+    /** Optional field which stored data from bank */
+    bank?: BankData
 }
 export const userData = (function() {
     const store = writable<UserData | null>(null);
