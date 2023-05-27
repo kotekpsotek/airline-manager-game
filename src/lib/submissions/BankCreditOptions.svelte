@@ -17,6 +17,24 @@
         return maxCreditAmount;
     }
 
+    /** Function to calculate additional user debt for taken credit */
+    function calculateAdditionalDebt(node: HTMLTableRowElement, { amount, interestRatePerDay, releaseDate }: { amount: number, interestRatePerDay: number, releaseDate: Date }) {
+        const elementToInsertCalculatedDebt = node.querySelector("#debt-amount") as HTMLSpanElement;
+        const howMuchMoneyIsOneDayInterest = (amount / 100) * interestRatePerDay;
+
+        // Calculate how many days last from release date
+        const dn = Date.now();
+        const rl = new Date(releaseDate).getTime();
+        let hw = (dn - rl) / 1_000 / 60 / 60 / 24; // calculate days amount
+        hw = Math.ceil(hw); // when days amount is smaller then 1 otherwise round off number to bigger // this can be also performing in one field of constant 'hw'
+
+        // Calculate how much money is equal to user debt
+        const userDebt = howMuchMoneyIsOneDayInterest * hw;
+
+        // Assign user debt to debt field
+        elementToInsertCalculatedDebt.textContent = String(userDebt);
+    }
+
     /** When user decide to go, to new credit creation menu */
     function takeCreditMenuClick(ev: Event) {
         selectedOption = "take-credit";
@@ -86,12 +104,12 @@
                             <th>Actions</th>
                         </tr>
                         {#each $userData?.bank?.credits as { releaseDate, interestRatePerDay, amount }, i}
-                            <tr>
+                            <tr use:calculateAdditionalDebt={{ releaseDate, interestRatePerDay, amount }}>
                                 <td>{i+=1}</td>
                                 <td>{amount}$</td>
                                 <td>{new Date(releaseDate).toLocaleDateString()}</td>
                                 <td>{interestRatePerDay}%</td>
-                                <td>0$</td>
+                                <td><span id="debt-amount"></span>$</td>
                                 <th>
                                     <button id="pay-off">
                                         Pay off
