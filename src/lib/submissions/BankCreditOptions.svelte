@@ -35,6 +35,32 @@
         elementToInsertCalculatedDebt.textContent = String(userDebt);
     }
 
+    /** When user decide to paid off credit which user has got acquired before */
+    function paidOffCredit(creditId: number) {
+        return (ev: Event) => {
+            // Calculate total sum to perform credit paid off operation
+            const creditSize = $userData!.bank!.credits[creditId].amount;
+            const additionalDebt = Number((ev.target as HTMLElement).parentElement!.parentElement!.parentElement!.querySelector("#debt-amount")!.textContent);
+            const sumToPaidOff = creditSize + additionalDebt;
+
+            // Paid off credit only when user has got enought money
+            if ($userData!.balance >= sumToPaidOff) {
+                const conf = confirm(`Would you like to paid of this credit with total amount ${sumToPaidOff}$?`);
+
+                // Perform paid off credit only when user gave right for this action
+                if (conf) {
+                    // Remove sum off money to paid off from user account balance
+                    $userData!.balance -= sumToPaidOff;
+
+                    // Remove credit from users credits list
+                    $userData!.bank!.credits.splice(creditId, 1);
+                    $userData = $userData; // apply changes into svelte GUI
+                }
+            }
+            else alert("You don't have enought money to paid off this credit!");
+        }
+    }
+
     /** When user decide to go, to new credit creation menu */
     function takeCreditMenuClick(ev: Event) {
         selectedOption = "take-credit";
@@ -105,13 +131,13 @@
                         </tr>
                         {#each $userData?.bank?.credits as { releaseDate, interestRatePerDay, amount }, i}
                             <tr use:calculateAdditionalDebt={{ releaseDate, interestRatePerDay, amount }}>
-                                <td>{i+=1}</td>
+                                <td>{i+1}</td>
                                 <td>{amount}$</td>
                                 <td>{new Date(releaseDate).toLocaleDateString()}</td>
                                 <td>{interestRatePerDay}%</td>
                                 <td><span id="debt-amount"></span>$</td>
                                 <th>
-                                    <button id="pay-off">
+                                    <button id="pay-off" on:click={paidOffCredit(i)}>
                                         Pay off
                                     </button>
                                 </th>
