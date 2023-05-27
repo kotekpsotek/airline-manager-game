@@ -54,6 +54,9 @@
             // Add new credit to user credits list
             $userData!.bank.credits = [...$userData!.bank.credits, creditObj];
 
+            // Add credit moneys to user balance
+            $userData!.balance += creditAmount;
+
             // Send to user about that user took credit
             alert("You took new credit!");
 
@@ -84,10 +87,10 @@
                         </tr>
                         {#each $userData?.bank?.credits as { releaseDate, interestRatePerDay, amount }, i}
                             <tr>
-                                <td>{i++}</td>
+                                <td>{i+=1}</td>
                                 <td>{amount}$</td>
                                 <td>{new Date(releaseDate).toLocaleDateString()}</td>
-                                <td>interestRatePerDay</td>
+                                <td>{interestRatePerDay}%</td>
                                 <td>0$</td>
                                 <th>
                                     <button id="pay-off">
@@ -134,6 +137,11 @@
         justify-content: center;
     }
 
+    input {
+        outline: none;
+        border: none;
+    }
+
     div.popup-menu, .take-new-credit-menu {
         min-width: 350px;
         padding: 10px;
@@ -143,11 +151,49 @@
     }
 
     button.take-credit {
+        width: 100%;
         margin-top: 5px;
         padding: 5px;
         color: white;
         background-color: cadetblue;
         border: solid black 1px;
+        border-radius: 4px;
+    }
+
+    div.take-new-credit-menu {
+        display: flex;
+        flex-direction: column;
+        row-gap: 5px;
+    }
+
+    div.take-new-credit-menu > :is(.how-mouch-money, .interest-rate) {
+        display: flex;
+        border: solid 1px rgb(22, 115, 237);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    div.take-new-credit-menu > :is(.how-mouch-money, .interest-rate) > p:first-of-type {
+        width: 55%;
+        padding: 5px;
+        background-color: rgb(19, 96, 197);
+        color: white;
+    }
+
+    div.take-new-credit-menu :is(.how-mouch-money, .interest-rate) > :not(p:first-of-type) {
+        width: 45%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-family: 'Roboto', sans-serif;
+        font-size: 15px;
+    }
+
+    button#decide-to-take {
+        padding: 5px;
+        background-color: rgb(15, 201, 15);
+        border: solid 1px black;
         border-radius: 4px;
     }
 </style>
