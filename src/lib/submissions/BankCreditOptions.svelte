@@ -117,33 +117,35 @@
         <div class="popup-menu credit-options-menu">
             <h2>Credit options</h2>
             <!-- Spawn user credits list only when user has got any credit -->
-            {#if $userData?.bank && $userData?.bank.credits}
+            {#if $userData?.bank && $userData?.bank.credits.length}
                 <div class="credits-list">
                     <h3>Your credits list</h3>
-                    <table class="list">
-                        <tr>
-                            <th>No.</th>
-                            <th>Amount</th>
-                            <th>Release Day</th>
-                            <th>Interest Rate</th>
-                            <th>Interest ($)</th>
-                            <th>Actions</th>
-                        </tr>
-                        {#each $userData?.bank?.credits as { releaseDate, interestRatePerDay, amount }, i}
-                            <tr use:calculateAdditionalDebt={{ releaseDate, interestRatePerDay, amount }}>
-                                <td>{i+1}</td>
-                                <td>{amount}$</td>
-                                <td>{new Date(releaseDate).toLocaleDateString()}</td>
-                                <td>{interestRatePerDay}%</td>
-                                <td><span id="debt-amount"></span>$</td>
-                                <th>
-                                    <button id="pay-off" on:click={paidOffCredit(i)}>
-                                        Pay off
-                                    </button>
-                                </th>
+                    <div class="list">
+                        <table class="list">
+                            <tr>
+                                <th>No.</th>
+                                <th>Amount</th>
+                                <th>Release Day</th>
+                                <th>Interest Rate</th>
+                                <th>Interest ($)</th>
+                                <th>Actions</th>
                             </tr>
-                        {/each}
-                    </table>
+                            {#each $userData?.bank?.credits as { releaseDate, interestRatePerDay, amount }, i}
+                                <tr use:calculateAdditionalDebt={{ releaseDate, interestRatePerDay, amount }}>
+                                    <td>{i+1}</td>
+                                    <td class="worth">{amount}$</td>
+                                    <td>{new Date(releaseDate).toLocaleDateString()}</td>
+                                    <td class="worth">{interestRatePerDay}%</td>
+                                    <td class="worth"><span id="debt-amount"></span>$</td>
+                                    <td>
+                                        <button id="pay-off" on:click={paidOffCredit(i)}>
+                                            Pay off
+                                        </button>
+                                    </td>
+                                </tr>
+                            {/each}
+                        </table>
+                    </div>
                 </div>
             {/if}
             <!-- Usable when user would like to take new credit -->
@@ -192,6 +194,38 @@
         background-color: whitesmoke;
         border: solid 1px rgb(22, 115, 237);
         border-radius: 4px;
+        overflow: auto;
+    }
+
+    div.list {
+        max-height: 200px;
+        overflow: auto;
+    }
+
+    table th {
+        height: 28px;
+        padding: 5px;
+        text-align: center;
+        background-color: rgb(19, 96, 197);
+        color: white;
+    }
+    
+    table td {
+        padding: 4px;
+        height: 25px;
+        text-align: center;
+    }
+
+    table td.worth {
+        color: rgb(226, 198, 44);
+    }
+
+    table td button#pay-off {
+        padding: 4px;
+        border: solid 1px black;
+        border-radius: 4px;
+        background-color: orange;
+        color: white;
     }
 
     button.take-credit {
