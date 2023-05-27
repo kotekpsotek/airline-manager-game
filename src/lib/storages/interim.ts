@@ -41,7 +41,7 @@ export interface Route {
 }
 
 /** Incudes all information about user interaction with bank */
-interface BankData {
+export interface BankData {
     credits: { releaseDate: Date, interestRatePerDay: number, amount: number }[]
 }
 
