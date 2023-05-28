@@ -213,6 +213,57 @@
             dispatcher("canceled");
         }
     }
+
+    /** Check whether plane selected by user isn't reserved in other user route in selected by user hour. Correcteness is computing each time when user blur input hours fields of route after pass to it hour for some route side way */
+    function checkWhetherNotReservedInHours(hours_type: Exclude<RouteType["status"], "waiting for in way from" | "waiting for in way to">) {
+        
+        return (ev: Event) => {
+            // Id of selected by user airplane
+            const selectedUserPlaneId = selectedAirplaneData?.planeId;
+
+            // Determine whether plane is reserved by other route
+            let alreadyReserved: boolean = false;
+
+            // Calculation for selected by user hours
+            const selectedByUserTime = hours_type == "in way to" ? hours.start : hours.end;
+            const [selectedHour, selectedMin] = selectedByUserTime.split(":");
+            const [selectedHourC, selectedMinC] = [Number(selectedHour) * 60 * 60 * 1_000, Number(selectedMin) * 60 * 1_000]
+            const selectedTimeC = selectedHourC + selectedMinC;
+
+            // Checking for selected plane within other routes
+            for (const { durationOfTravelMins, hours: { start: startHour, end: endHour }, selectedAirplane: { planeId: routePlaneId } } of $userData!.routes) {
+                // Perform calculations and assertions only for same airplane as selected from routes list to which plane is assigned
+                if (selectedUserPlaneId == routePlaneId) {
+                    const startRouteHour = hours_type == "in way to" ? startHour : endHour;
+                    const [hourStart, minStart] = startRouteHour.split(":");
+                    const { hour: arrivalHour, min: arrivalMin } = Route.getArrivalHour(startRouteHour, durationOfTravelMins);
+    
+                    // Hours calculations
+                    /// Start time calculations to milliseconds
+                    const hourStartC = Number(hourStart) * 60 * 60 * 1_000;
+                    const minStartC = Number(minStart) * 60 * 1_000;
+                    const timeStartC = hourStartC + minStartC;
+                    /// End time calculations to milliseconds
+                    const arrivalHourC = arrivalHour * 60 * 60 * 1_000;
+                    const arrivalMinC = arrivalMin * 60 * 1_000;
+                    const timeArrivalC = arrivalHourC + arrivalMinC;
+
+                    // Determination whether selected by user time overlaps to route time
+                    alreadyReserved = (selectedTimeC >= timeStartC && selectedTimeC <= timeArrivalC) || selectedTimeC == timeStartC || selectedTimeC == timeArrivalC;
+                    console.log(alreadyReserved)
+                }
+            }
+
+            // Clear specific hours when this is not avaiable because plane is already reserved in this hours span
+            if (alreadyReserved) {
+                // Display appropriate text information to user about that plane is already reserved is selected hour for other route
+                alert("Selected by you plane is assigned to other route in this hour. Choose other hour or plane!");
+
+                // Reset choosen by user hours for plane
+                hours_type == "in way to" ? hours.start = "" : hours.end = "";
+            }
+        }
+    }
 </script>
 
 <svelte:body style="overflow: hidden;"/>
@@ -226,9 +277,7 @@
                 <select id="select-plane" bind:value={selectedPlaneModelName} placeholder="Select one from your planes">
                     {#each $userData.fleet as userDataFleetUnit }}
                         <!-- For user will be avaiable only planes which isn't reserved for any route -->
-                        {#if !Route.planeIsAssignedToRoute(userDataFleetUnit.planeId, $userData.routes)}
-                            <option value="{userDataFleetUnit.airplane_model_name}#{userDataFleetUnit.planeId}">{`${userDataFleetUnit.airplane_brand} ${userDataFleetUnit.airplane_model_name}`}</option>
-                        {/if}
+                        <option value="{userDataFleetUnit.airplane_model_name}#{userDataFleetUnit.planeId}">{`${userDataFleetUnit.airplane_brand} ${userDataFleetUnit.airplane_model_name}`}</option>
                     {/each}
                     <option value=""></option>
                 </select>
@@ -256,11 +305,11 @@
             <div class="determining-start-hours">
                 <div>
                     <p>Determine time of start route (to destination)</p>
-                    <input type="time" bind:value={hours.start}>
+                    <input type="time" bind:value={hours.start} on:blur={checkWhetherNotReservedInHours("in way to")}>
                 </div>
                 <div>
                     <p>Determine time of start route (from destination)</p>
-                    <input type="time" bind:value={hours.end}>
+                    <input type="time" bind:value={hours.end} on:blur={checkWhetherNotReservedInHours("in way from")}>
                 </div>
             </div>
             <div class="price-for-seat">
