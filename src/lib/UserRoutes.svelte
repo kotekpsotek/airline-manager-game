@@ -352,6 +352,7 @@
     }
 
     .user-routes {
+        height: calc(100% - 20px); /* 100% of parent element height - 20px from above and bottom padding */
         padding: 10px;
         display: flex;
         flex-direction: column;
