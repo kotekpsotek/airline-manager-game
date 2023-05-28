@@ -4,6 +4,9 @@
     import { userData } from "$lib/storages/interim";
     
     export let routeId: string;
+    const findRouteWithId = $userData?.routes.find((val) => {
+        return (val.routeId == routeId);
+    })
 
     type Actions = "delete" | "none";
     let action: Actions = "none";
@@ -20,7 +23,10 @@
     /** When user choose action which would like to perform */
     const actionInit = (type: Actions) => {
         return (ev: Event) => {
-            action = type;
+            if (type == "delete" && findRouteWithId!.status.startsWith("in way")) { // Exception for action delete route
+                alert("You cannot delete route which is ongoing!");
+            }
+            else action = type;
         }
     }
 
