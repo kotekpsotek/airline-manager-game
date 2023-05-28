@@ -225,7 +225,10 @@
                 <h2>Choose airplane for route</h2>
                 <select id="select-plane" bind:value={selectedPlaneModelName} placeholder="Select one from your planes">
                     {#each $userData.fleet as userDataFleetUnit }}
-                        <option value="{userDataFleetUnit.airplane_model_name}#{userDataFleetUnit.planeId}">{`${userDataFleetUnit.airplane_brand} ${userDataFleetUnit.airplane_model_name}`}</option>
+                        <!-- For user will be avaiable only planes which isn't reserved for any route -->
+                        {#if !Route.planeIsAssignedToRoute(userDataFleetUnit.planeId, $userData.routes)}
+                            <option value="{userDataFleetUnit.airplane_model_name}#{userDataFleetUnit.planeId}">{`${userDataFleetUnit.airplane_brand} ${userDataFleetUnit.airplane_model_name}`}</option>
+                        {/if}
                     {/each}
                     <option value=""></option>
                 </select>
@@ -395,6 +398,10 @@
         margin-top: 5px;
     }
 
+    select#select-plane {
+        min-width: 180px;
+    }
+    
     :is(input, select)::placeholder {
         color: rgb(22, 115, 237);
     }
