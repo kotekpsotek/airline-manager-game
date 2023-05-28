@@ -72,8 +72,14 @@ export function followInBackground() {
 
                         // When routes ends (what is determined using percentage status of persisting route (route which is in way)) send to user notification about it
                         if (routePercentage.split(".")[0].includes("100")) {
+                            // Send notification that route was finalized
                             new NotificationSender().whenRouteWasFinalized(route);
+
+                            // Determine new status of waiting for route using actual route status
                             uData.routes[indexIterated].status = Route.determineNewStatusFromInWayToWaitingFor(uData.routes[indexIterated])
+
+                            // Recalculate amount of occupied seats for next route departure
+                            uData.routes[indexIterated].occupiedSeats = Route.generateOccupiedPlaneSeatsCount(uData.routes[indexIterated].selectedAirplane);
                         }
                     }
 

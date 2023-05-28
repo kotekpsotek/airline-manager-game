@@ -49,6 +49,9 @@
                     // Send notification that route was finalized
                     new NotificationSender().whenRouteWasFinalized(iteratedRouteObj);
 
+                    // Recalculate amount of occupied seats for next departure
+                    $userData!.routes[iterationOverRoutesId].occupiedSeats = Route.generateOccupiedPlaneSeatsCount(iteratedRouteObj.selectedAirplane);
+
                     // When functional interval exists then clear it
                     functionalInterval.clearInterval();
                 } else {
