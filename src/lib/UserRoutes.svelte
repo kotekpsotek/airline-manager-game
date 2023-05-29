@@ -324,7 +324,7 @@
                                     </div>
                                     <div class="income-from-route" title="Income from route (in $ (USD))">
                                         <Currency size={24} fill={iconsColor}/>
-                                        <p>{pricePerSeat * (occupiedSeats || 0)} $</p>
+                                        <p>{pricePerSeat * (occupiedSeats || 0)}$ (1s = {pricePerSeat}$)</p>
                                     </div>
                                 </div>
                             </div>
