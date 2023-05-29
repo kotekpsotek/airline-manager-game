@@ -1,14 +1,15 @@
 <script lang="ts">
     import { CloseFilled } from "carbon-icons-svelte";
     import { createEventDispatcher } from "svelte";
-    import { userData } from "$lib/storages/interim";
+    import { userData, type UserData, type Route } from "$lib/storages/interim";
+    import CreateRoute from "$lib/CreateRoute.svelte";
     
     export let routeId: string;
-    const findRouteWithId = $userData?.routes.find((val) => {
+    const findRouteWithId = (JSON.parse(JSON.stringify($userData)) as UserData).routes.find((val) => {
         return (val.routeId == routeId);
-    })
+    }); // JSON methods are to bypass svelte reactivity
 
-    type Actions = "delete" | "none";
+    type Actions = "delete" | "edit" | "none";
     let action: Actions = "none";
     const evDis = createEventDispatcher();
 
@@ -25,6 +26,9 @@
         return (ev: Event) => {
             if (type == "delete" && findRouteWithId!.status.startsWith("in way")) { // Exception for action delete route
                 alert("You cannot delete route which is ongoing!");
+            }
+            else if (type == "edit" && findRouteWithId!.status.startsWith("in way")) { // Exception for action edit route
+                alert("You cannot edit route which is ongoing!");
             }
             else action = type;
         }
@@ -49,6 +53,18 @@
         }
         else alert("Deletion cannot be perform. You have to pass \"delete\" to input field correctly!");
     }
+
+    /** When user ends editting route across change existing route data (when from spawned component is emitted event: 'route-editted') */
+    function whenRouteEditted({ detail }: CustomEvent<Route>) {
+        // Edit route
+        let itNum = $userData!.routes.findIndex(val => {
+            return (val.routeId == routeId);
+        }) as number;
+        $userData!.routes[itNum] = detail;
+
+        // Close editting route menu
+        action = "none"
+    }
 </script>
 
 <div id="edit-span">
@@ -59,9 +75,14 @@
         {#if action == "none"}
             <div class="edit-route">
                 <h2>Choose action which you'd like to perform</h2>
-                <button id="delete-route" on:click={actionInit("delete")}>
-                    Delete
-                </button>
+                <div class="buttons">
+                    <button id="edit-route" on:click={actionInit("edit")}>
+                        Edit
+                    </button>
+                    <button id="delete-route" on:click={actionInit("delete")}>
+                        Delete
+                    </button>
+                </div>
             </div>
         {:else if action == "delete"}
             <div class="delete-action">
@@ -71,6 +92,10 @@
                     <button id="ok" on:click={actionDelete}>Ok</button>
                     <button id="decline" on:click={actionInit("none")}>Decline</button>
                 </div>
+            </div>
+        {:else if action == "edit"}
+            <div class="edit-route">
+                <CreateRoute withCancelationAvaiable={true} edittingRoute={true} edittingRouteParams={findRouteWithId} on:cancel-editting={() => action = "none"} on:route-editted={whenRouteEditted}/>
             </div>
         {/if}
     </div>
@@ -90,11 +115,13 @@
     }
 
     #edit-span .enc {
+        /* max-height: 350px; */
         position: relative;
         padding: 10px;
         background-color: whitesmoke;
         border: solid 2px rgb(22, 115, 237);
         border-radius: 4px;
+        /* overflow-y: auto; */
     }
 
     #edit-span .enc button#close {
@@ -125,8 +152,19 @@
         cursor: pointer;
     }
 
+    div.buttons {
+        display: flex;
+        flex-direction: column;
+        row-gap: 5px;
+    }
+
     button {
         border-radius: 4px;
+    }
+
+    button#edit-route {
+        background-color: green;
+        color: white;
     }
 
     button#delete-route {
@@ -160,5 +198,12 @@
     .delete-action button#decline {
         background-color: rgb(163, 28, 28);
         color: white;
+    }
+
+    /* Action to edit route */
+    .edit-route {
+        max-height: 350px;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 </style>

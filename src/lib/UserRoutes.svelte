@@ -11,6 +11,7 @@
 
     const iconsColor = "green";
     let durningCreationOfNewRoute: boolean = false;
+    let durningEditionOfExistingRoute: boolean = false;
 
     /** Perform tasks included into function body for each route element when it is spawning into screen view */
     const whenRouteSpawned = (node: HTMLElement, iterationOverRoutesId: number) => {
@@ -152,6 +153,8 @@
     function editRoute(iterationRouteId: number) {
         const routeSelectedId = $userData!.routes[iterationRouteId].routeId;
         return (ev: Event) => {
+            durningEditionOfExistingRoute = true;
+
             const editElement = new EditRoute({
                 target: document.getElementsByClassName("map")[0],
                 props: {
@@ -162,6 +165,7 @@
             // When user close menu
             editElement.$on("closed", () => {
                 editElement.$destroy();
+                durningEditionOfExistingRoute = false;
             })
         }
     }
@@ -257,7 +261,7 @@
     }
 </script>
 
-{#if !durningCreationOfNewRoute}
+{#if !durningCreationOfNewRoute && !durningEditionOfExistingRoute}
     <div class="user-routes">
         <button id="create-new-route" on:click={createNewRoute}>
             <CalendarAdd size={24}/>

@@ -8,12 +8,14 @@
 
     // Whether user can cancel of creating new route (really pleasant when user add new routes further time then this when user created just new airline)
     export let withCancelationAvaiable: boolean = false;
+    export let edittingRoute: boolean = false;
+    export let edittingRouteParams: Partial<RouteType> | undefined = undefined;
 
     /** Event dispatcher from svelte, for this component */
     const dispatcher = createEventDispatcher();
     
     let selectedPlaneModelName: string;
-    let routeData = {
+    let routeData = edittingRoute ? edittingRouteParams!.routeDestinations! : {
         from: {
             name: "",
             geo: {
@@ -29,14 +31,14 @@
             }
         },
     };
-    let hours = {
+    let hours = edittingRoute ? edittingRouteParams!.hours! : {
         start: "",
         end: ""
     };
-    let priceForOneRouteSeat: number = 10; // Price for one seat in plane determined by user for creating route
-    let selectedAirplaneData: UserFleetTypeUnit | undefined; // Selected airplane details
-    let distanceBetweenPointsKm: number = 0; // Distance between points in kilometers 
-    let durationOfTravelMins: number = 1; // duration of travel in minutes
+    let priceForOneRouteSeat: number = edittingRoute ? edittingRouteParams!.pricePerSeat! : 10; // Price for one seat in plane determined by user for creating route
+    let selectedAirplaneData: UserFleetTypeUnit | undefined = edittingRoute ? edittingRouteParams!.selectedAirplane! : undefined; // Selected airplane details
+    let distanceBetweenPointsKm: number = edittingRoute ? edittingRouteParams!.distanceBetweenPointsKm! : 0; // Distance between points in kilometers 
+    let durationOfTravelMins: number = edittingRoute ? edittingRouteParams!.durationOfTravelMins! : 1; // duration of travel in minutes
 
     /** Store state whether user focus on inputs to determining start or end point of each route */
     let userFocusOnDestinationsInput: boolean = false;
@@ -204,6 +206,29 @@
         }
     }
 
+    /** Activated when user emit "click" event after click on "Edit route" button html5 element */
+    function editRouteButtonClick(ev: Event) {
+        // Editted Route object
+        const edittedRouteObj = { // id must not be editted
+            routeId: edittingRouteParams!.routeId  as RouteType["routeId"],
+            routeDestinations: {
+                ...routeData,
+            },
+            hours: {
+                ...hours,
+            },
+            selectedAirplane: selectedAirplaneData as any,
+            distanceBetweenPointsKm,
+            durationOfTravelMins,
+            occupiedSeats: Route.generateOccupiedPlaneSeatsCount(selectedAirplaneData as RouteType["selectedAirplane"]), // regenetate occupied seats count for each edition of route
+            status: "waiting for in way to",
+            pricePerSeat: priceForOneRouteSeat
+        } satisfies RouteType;
+
+        // Emit that route has been edited yet
+        dispatcher("route-editted", edittedRouteObj);
+    }
+
     /** When user decide to cancel of creation new route and confirm this step on confirm alert when option from this component 'withCancelationAvaiable' is set as true */
     function cancelCreatingNewRoute(ev: Event) {
         const ask = confirm("For sure would you like to cancel of creating new route?");
@@ -212,6 +237,11 @@
         if (ask) {
             dispatcher("canceled");
         }
+    }
+
+    /** When user decide to cancel of edition already existing route */
+    function cancelEdittingRoute(ev: Event) {
+        dispatcher("cancel-editting");
     }
 
     /** Check whether plane selected by user isn't reserved in other user route in selected by user hour. Correcteness is computing each time when user blur input hours fields of route after pass to it hour for some route side way */
@@ -271,7 +301,7 @@
 {#if $userData?.fleet}
     <div class="create-route">
         <div>
-            <h1>Creating new Route</h1>
+            <h1>{edittingRoute == false ? "Creating new Route" : `Editing route ${edittingRouteParams?.routeId || ""}`}</h1>
             <div class="select-plane">
                 <h2>Choose airplane for route</h2>
                 <select id="select-plane" bind:value={selectedPlaneModelName} placeholder="Select one from your planes">
@@ -390,13 +420,19 @@
                 {/if}
                 <div class="decision">
                     {#if withCancelationAvaiable}
-                        <button id="cancel" on:click={cancelCreatingNewRoute}>
+                        <button id="cancel" on:click={!edittingRoute ? cancelCreatingNewRoute : cancelEdittingRoute}>
                             Cancel
                         </button>
                     {/if}
-                    <button id="create-route" disabled={!routeDetermined()} on:click={createRouteButtonClick}>
-                        Create route
-                    </button>
+                    {#if !edittingRoute}
+                        <button id="create-route" disabled={!routeDetermined()} on:click={createRouteButtonClick}>
+                            Create route
+                        </button>
+                    {:else}
+                        <button id="edit-route" disabled={!routeDetermined()} on:click={editRouteButtonClick}>
+                            Edit route
+                        </button>
+                    {/if}
                 </div>
             {/key}
         </div>
@@ -560,7 +596,7 @@
         cursor: pointer;
     }
 
-    div.decision button#create-route {
+    div.decision :is(button#create-route, button#edit-route) {
         border: solid 1px rgb(26, 186, 26);
         background-color: rgb(26, 186, 26);
     }
