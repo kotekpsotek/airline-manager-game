@@ -10,12 +10,13 @@
     export let withCancelationAvaiable: boolean = false;
     export let edittingRoute: boolean = false;
     export let edittingRouteParams: Partial<RouteType> | undefined = undefined;
+    const { selectedAirplane: baseAirplane, routeDestinations: base } = JSON.parse(JSON.stringify(edittingRouteParams)) as RouteType;
 
     /** Event dispatcher from svelte, for this component */
     const dispatcher = createEventDispatcher();
     
     let selectedPlaneModelName: string;
-    let routeData = edittingRoute ? edittingRouteParams!.routeDestinations! : {
+    let routeData = edittingRoute ? Object.assign({}, edittingRouteParams!.routeDestinations!) : {
         from: {
             name: "",
             geo: {
@@ -31,7 +32,7 @@
             }
         },
     };
-    let hours = edittingRoute ? edittingRouteParams!.hours! : {
+    let hours = edittingRoute ? Object.assign({}, edittingRouteParams!.hours!) : {
         start: "",
         end: ""
     };
@@ -93,6 +94,12 @@
     /** Check whether user pass all data required to create a new route */
     const routeDetermined: () => boolean = () => {
         return !userFocusOnDestinationsInput && routeData.from && routeData.to && hours.start && hours.end && distanceBetweenPointsKm && PlanesList.whetherIsAbleToFlyThroughtDistance(distanceBetweenPointsKm, selectedAirplaneData as any) ? true : false;
+    }
+
+    /** Determine whether some from old route data was editted durning edition process. Is using when 'edittinRoute' variable is setup as 'true' boolean value */
+    const routeDataEditted: () => boolean = () => {
+        const p = edittingRouteParams as Partial<RouteType>;
+        return p.pricePerSeat != priceForOneRouteSeat || (p.hours!.start != hours.start || p.hours!.end != hours.end) || (base.to.name != routeData.to.name || base.from.name != routeData.from.name) || baseAirplane.planeId != selectedAirplaneData!.planeId;
     }
 
     /** Get formated headquarters airport name for usage into GUI */
@@ -296,6 +303,7 @@
     }
 </script>
 
+<button on:click={routeDataEditted}>Whether editted</button>
 <svelte:body style="overflow: hidden;"/>
 
 {#if $userData?.fleet}
@@ -351,7 +359,7 @@
                     <input type="number" min="10" bind:value={priceForOneRouteSeat}>
                 </div>
             </div>
-            {#key selectedPlaneModelName && routeData && priceForOneRouteSeat && hours || userFocusOnDestinationsInput}
+            {#key selectedPlaneModelName && routeData && priceForOneRouteSeat && hours || userFocusOnDestinationsInput && priceForOneRouteSeat}
                 {#if routeDetermined()}
                     <div class="route-determined-details">
                         <div class="map">
@@ -429,7 +437,7 @@
                             Create route
                         </button>
                     {:else}
-                        <button id="edit-route" disabled={!routeDetermined()} on:click={editRouteButtonClick}>
+                        <button id="edit-route" disabled={!routeDetermined() || !routeDataEditted()} on:click={editRouteButtonClick}>
                             Edit route
                         </button>
                     {/if}
