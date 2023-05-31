@@ -10,7 +10,7 @@
     export let withCancelationAvaiable: boolean = false;
     export let edittingRoute: boolean = false;
     export let edittingRouteParams: Partial<RouteType> | undefined = undefined;
-    const { selectedAirplane: baseAirplane, routeDestinations: base } = JSON.parse(JSON.stringify(edittingRouteParams)) as RouteType;
+    const { selectedAirplane: baseAirplane, routeDestinations: base } = JSON.parse(JSON.stringify(edittingRouteParams || {})) as RouteType;
 
     /** Event dispatcher from svelte, for this component */
     const dispatcher = createEventDispatcher();
@@ -303,7 +303,6 @@
     }
 </script>
 
-<button on:click={routeDataEditted}>Whether editted</button>
 <svelte:body style="overflow: hidden;"/>
 
 {#if $userData?.fleet}

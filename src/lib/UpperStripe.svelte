@@ -3,6 +3,7 @@
     import { userData as userD } from "$lib/storages/interim";
     import Bank from "$lib/Bank.svelte";
     import { clearMainAppFieldFromAnyComponents } from "$lib/api"
+    import UserBadge from "$lib/UserBadge.svelte";
 
     /** Format account balance to format in which each 3 digits are separated by whitespace. Example for number: 50000 will be: 50 000 */
     function formatedAccountBalance() {
@@ -23,8 +24,32 @@
             target: document.getElementsByClassName("map")[0]
         });
 
-        // When user decide to close bank side then perform that request
+        // When user decide to close bank side then perform that requestgit 
         bankComponent.$on("close", () => bankComponent.$destroy())
+    }
+
+    /** Stores component instance with user account actions menu */
+    let accountBadge: UserBadge | undefined;
+
+    /** When user click on account icon button element */
+    function userAccount() {
+        if (!accountBadge) {
+            // When badge isn't already presented then make it and add to view
+            accountBadge = new UserBadge({
+                target: document.getElementsByClassName("map")[0]
+            });
+
+            /** When user decide to close menu by clicking on button to close this menu located within it */
+            accountBadge.$on("close", () => {
+                accountBadge!.$destroy()
+                accountBadge = undefined;
+            })
+        }
+        else {
+            // When badge is already presented then remove it from user view
+            accountBadge.$destroy();
+            accountBadge = undefined;
+        }
     }
 </script>
 
@@ -33,7 +58,7 @@
     <button id="account-balance" title="Account balance: {$userD ? formatedAccountBalance() : 0}$" on:click={goToBank}>
         <p>{$userD ? formatedAccountBalance() : 0} $</p>
     </button>
-    <button id="account" title="Your Account">
+    <button id="account" title="Your Account" on:click={userAccount}>
         <UserAvatarFilled size={32}/>
     </button>
 </div>
