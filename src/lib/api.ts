@@ -349,3 +349,21 @@ export class NotificationSender {
         });
     }
 }
+
+/** Defines whether delete permanetely user data */
+export function deleteUserData(confirm: boolean) {
+    if (confirm) {
+        /** To delete from localStorage key with name defined under 'key' param */
+        const deleteKey = (key: string) => {
+            if (localStorage.getItem(key)) {
+                localStorage.removeItem(key);
+            }
+        }
+
+        // Delete user airline progress data
+        deleteKey("airline-manager#userdata");
+
+        // Delete fuel market data
+        deleteKey("airline-manager#fuel-prices");
+    }
+}

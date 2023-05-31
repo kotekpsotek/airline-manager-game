@@ -1,6 +1,10 @@
 <script lang="ts">
     import { Close } from "carbon-icons-svelte";
     import { createEventDispatcher } from "svelte";
+    import { deleteUserData } from "$lib/api";
+    import { userData } from "$lib/storages/interim";
+    import { fuelMarketPrices } from "$lib/storages/fuelmarket";
+    import CreateNewAirline from "$lib/CreateNewAirline.svelte";
 
     /** Events dispatcher */
     const dispatcher = createEventDispatcher();
@@ -9,12 +13,36 @@
     function closeMenu(ev: Event) {
         dispatcher("close");
     }
+
+    /** When user click on 'Delete your airline' button to delete user airline data and all linked with it data from user browswer 'localStorage' memory space */
+    function deleteUserAirline(ev: Event) {
+        // Ask to confirm information whether delete user data
+        const ps = prompt("Are you sure about deleting your airline? This action won't be to undo. Pass 'delete' and confirm by clicking on 'ok' button to delete your airline or click on 'cancel' button to cancel this action")
+
+        // Delete user data
+        if (ps == "delete") {
+            // Delete all necessary keys from user browswer localStorage memory-space
+            deleteUserData(true);
+         
+            // Reset and save deleted data into user browswer localStorage memory space
+            $userData = null;
+            userData.saveStorageIntoUserBrowswer();
+
+            // Reset fuel market prices datas
+            $fuelMarketPrices = [];
+
+            // Induce user to create new airline after delete old
+            const createNewAirlineComponent = new CreateNewAirline({
+                target: document.body
+            });
+        }
+    }
 </script>
 
 <div class="user-account-badge">
     <h4>Your account options</h4>
     <div class="options">
-        <button id="delete-airline" class="critical">
+        <button id="delete-airline" class="critical" on:click={deleteUserAirline}>
             Delete your airline
         </button>
     </div>
