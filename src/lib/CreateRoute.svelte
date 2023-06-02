@@ -301,6 +301,20 @@
             }
         }
     }
+
+    /** Get hr and minute presented in format: 'hr:min' converted to millisecond hour representation from day */
+    const getHrInMilis = (hr_param: string) => {
+        const [hr, min] = hr_param.split(":");
+        const hrN = Number(hr);
+        const minN = Number(min);
+
+        const hrC = hrN * 60 * 60 * 1_000;
+        const minC = minN * 60 * 1_000;
+
+        const all = hrC + minC;
+
+        return all;
+    }
 </script>
 
 <svelte:body style="overflow: hidden;"/>
@@ -341,12 +355,21 @@
             </div>
             <div class="determining-start-hours">
                 <div>
-                    <p>Determine time of start route (to destination)</p>
-                    <input type="time" bind:value={hours.start} on:blur={checkWhetherNotReservedInHours("in way to")}>
+                    <div class="main">
+                        <p>Determine time of start route (to destination)</p>
+                        <input type="time" bind:value={hours.start} on:blur={checkWhetherNotReservedInHours("in way to")}>
+                    </div>
                 </div>
                 <div>
-                    <p>Determine time of start route (from destination)</p>
-                    <input type="time" bind:value={hours.end} on:blur={checkWhetherNotReservedInHours("in way from")}>
+                    <div class="main">
+                        <p>Determine time of start route (from destination)</p>
+                        <input type="time" bind:value={hours.end} on:blur={checkWhetherNotReservedInHours("in way from")}>
+                    </div>
+                    {#if getHrInMilis(hours.start) > getHrInMilis(hours.end)}
+                        <div class="in-next-day" title="Because 'from destination' hour is smaller then 'to destination' hour your route in this direction will be departure only in next day">
+                            <p>* in next day</p>
+                        </div>
+                    {/if}
                 </div>
             </div>
             <div class="price-for-seat">
@@ -393,12 +416,19 @@
                                     <td>{durationOfTravelMins} minutes</td>
                                 </tr>
                                 <tr>
-                                    <td>Depature date</td>
-                                    <td>{hours.start}</td>
+                                    <td>Depature date (to destination)</td>
+                                    <td>{hours.start} - {Route.getArrivalHour(hours.start, durationOfTravelMins).getHrMin()}</td>
                                 </tr>
                                 <tr>
-                                    <td>Arrival hour</td>
-                                    <td>{hours.end}</td>
+                                    <td>Departure date (from destination)</td>
+                                    <td>
+                                        {hours.end} - {Route.getArrivalHour(hours.end, durationOfTravelMins).getHrMin()}
+                                        {#if getHrInMilis(hours.start) > getHrInMilis(hours.end)}
+                                            <span class="in-next-day">
+                                                * in next day
+                                            </span>
+                                        {/if}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Price for one seat</td>
@@ -507,15 +537,24 @@
     div.determining-start-hours input {
         margin-top: 0px;
     }
+    
+    .in-next-day {
+        color: red !important;
+    }
 
-    div.determining-start-hours div {
+    div.determining-start-hours > div:nth-of-type(2) .in-next-day {
+        margin-top: 2px;
+    }
+    
+    div.determining-start-hours div.main {
         height: 30px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-    div.determining-start-hours div p {
+
+    div.determining-start-hours div.main p {
         height: 100%;
         background-color: rgb(22, 115, 237);
         border: solid 2px rgb(22, 115, 237);
@@ -528,7 +567,7 @@
         justify-content: center;
     }
 
-    div.determining-start-hours div input[type*=time] {
+    div.determining-start-hours div.main input[type*=time] {
         border-top-left-radius: 0px;
         border-bottom-left-radius: 0px;
     }
