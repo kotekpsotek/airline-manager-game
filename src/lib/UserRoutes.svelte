@@ -8,7 +8,9 @@
     import { PlanesList } from "./storages/planes";
     import ProgressBar from "$lib/CustomElements/ProgressBar.svelte";
     import { fuelMarketPrices } from "$lib/storages/fuelmarket";
+    import { page } from "$app/stores";
 
+    const history = $page.data.history;
     const iconsColor = "green";
     let durningCreationOfNewRoute: boolean = false;
     let durningEditionOfExistingRoute: boolean = false;
@@ -207,6 +209,8 @@
         })
     }
 
+    console.log(history.content);
+
     /** When user click on "Departure" button then departured route is marked as departured */
     function departureRoute(it_id: number) {
         const route = $userData!.routes[it_id];
@@ -243,6 +247,11 @@
     
                 // Add to user account balance income from tickets for route
                 $userData!.balance += route.pricePerSeat * (route.occupiedSeats as number);
+
+                // Add to history fuel consumption information
+                history.updateHistory({
+                    fuel_consumption: [...(history.content?.fuel_consumption || []), { time: new Date(), amount: requiredFuelAmountLitters, state: $userData!.fuel || 0 }]
+                });
                 
                 // Calculate route arrive date
                 const getArriveDate = () => {
