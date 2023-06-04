@@ -6,6 +6,7 @@
     import { type AirplaneBrands, PlanesList, type AirplaneModel } from "$lib/storages/planes";
     import WhetherBuyPlane from "./WhetherBuyPlane.svelte";
     import { userData as userD, type UserFleetTypeUnit } from "$lib/storages/interim";
+    import Table from "./CustomElements/Table.svelte";
 
     // Event dispatcher for svelte event passing backward (to inicjalization module)
     const dispatcher = createEventDispatcher();
@@ -107,16 +108,14 @@
                                 <button class="plane" on:click={choosePlaneToBuy(airplane_brand, airplane_model_name, plane_price, id)}>
                                     <img src="/src/lib/assets/planes/{airplane_image}" alt="{airplane_model_name} image">
                                     <h4>{airplane_model_name}</h4>
-                                    <table class="specification">
-                                        <tr>
-                                            <th>Max speed</th>
-                                            <th>Cruise speed</th>
-                                            <th>Fuel Capacity</th>
-                                            <th>Fuel Consumption</th>
-                                            <th>Max passangers</th>
-                                            <th>Max range</th>
-                                        </tr>
-                                        <tr>
+                                    <Table>
+                                        <th>Max speed</th>
+                                        <th>Cruise speed</th>
+                                        <th>Fuel Capacity</th>
+                                        <th>Fuel Consumption</th>
+                                        <th>Max passangers</th>
+                                        <th>Max range</th>
+                                        <tr slot="rows">
                                             <td>{airplane_specification.max_speed} km/h</td>
                                             <td>{airplane_specification.cruise_speed} km/h</td>
                                             <td>{airplane_specification.fuel_capacity} kg</td>
@@ -124,7 +123,7 @@
                                             <td>{airplane_specification.max_passangers} </td>
                                             <td>{airplane_specification.max_range} km</td>
                                         </tr>
-                                    </table>
+                                    </Table>
                                     <div class="price-per-unit">
                                         <div class="price">
                                             <p>Price per unit</p>
@@ -235,10 +234,6 @@
 
     button.plane h4 {
         color: rgb(22, 115, 237);
-    }
-
-    button.plane table.specification {
-        width: 100%;
     }
 
     button.plane table.specification th {

@@ -2,6 +2,7 @@
     import { page } from "$app/stores";
     import { ProgressBarRound, Close } from "carbon-icons-svelte";
     import type { HistoryData } from "./storages/history";
+    import Table from "$lib/CustomElements/Table.svelte";
 
     const history = $page.data.history;
     history.content?.balance.push({ time: new Date(), type: "route departure", amount: 11_200, balance_after: 0, balance_before: 0 });
@@ -60,18 +61,18 @@
             <h3>Incomes:</h3>
             <div class="incomes">
                 {#if history.content?.balance}
-                    <table>
-                        <tr>
-                            <th>Date/Time</th>
-                            <th>Amount (USD - $)</th>
-                        </tr>
-                        {#each incomeData.reverse() as { time, amount }}
-                            <tr>
-                                <td>{new Date(time).toLocaleDateString()} {sortedOption == "all" ? " - " + new Date(time).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) : ""}</td>
-                                <td>{amount}$</td>
-                            </tr>
-                        {/each}
-                    </table>
+                    <Table>
+                        <th>Date/Time</th>
+                        <th>Amount (USD - $)</th>
+                        <svelte:fragment slot="rows">
+                            {#each incomeData.reverse() as { time, amount }}
+                                <tr>
+                                    <td>{new Date(time).toLocaleDateString()} {sortedOption == "all" ? " - " + new Date(time).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) : ""}</td>
+                                    <td>{amount}$</td>
+                                </tr>
+                            {/each}
+                        </svelte:fragment>
+                    </Table>
                 {:else}
                     <div class="empty">
                         <p>No registred your account balance history!</p>

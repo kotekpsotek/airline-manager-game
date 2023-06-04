@@ -3,6 +3,7 @@
     import { Route } from "$lib/api";
     import { GasStationFilled } from "carbon-icons-svelte";
     import FuelMarket from "$lib/FuelMarket.svelte";
+    import Table from "./CustomElements/Table.svelte";
 
     // To not obtaining error about inaccurate size for carbon-design-system icon
     const userFuelStatusIconSize = 28 as 32;
@@ -53,22 +54,22 @@
         <h3>List</h3>
         <div class="planes-list">
             {#if $userData}
-                <table>
-                    <tr>
-                        <th>No.</th>
-                        <th>Id</th>
-                        <th>Model</th>
-                        <th>Assigned to route</th>
-                    </tr>
-                    {#each $userData?.fleet as fleet_unit, it_id}
-                        <tr>
-                            <td class="no">{it_id + 1}</td>
-                            <td style:color="green">{fleet_unit.planeId}</td>
-                            <td>{fleet_unit.airplane_brand} {fleet_unit.airplane_model_name}</td>
-                            <td>{@html getAssignationRouteNameForGUI(fleet_unit.planeId)}</td>
-                        </tr>
-                    {/each}
-                </table>
+                <Table>
+                    <th>No.</th>
+                    <th>Id</th>
+                    <th>Model</th>
+                    <th>Assigned to route</th>
+                    <svelte:fragment slot="rows">
+                        {#each $userData?.fleet as fleet_unit, it_id}
+                            <tr>
+                                <td class="no">{it_id + 1}</td>
+                                <td style:color="green">{fleet_unit.planeId}</td>
+                                <td>{fleet_unit.airplane_brand} {fleet_unit.airplane_model_name}</td>
+                                <td>{@html getAssignationRouteNameForGUI(fleet_unit.planeId)}</td>
+                            </tr>
+                        {/each}
+                    </svelte:fragment>
+                </Table>
             {/if}
         </div>
     </div>
@@ -134,26 +135,5 @@
 
     h1, h3 {
         color: rgb(22, 115, 237);
-    }
-
-    table :is(th, td) {
-        font-size: 15px;
-    }
-
-    table th {
-        min-width: 50px;
-        height: 40px;
-        color: white;
-        background-color: rgb(19, 96, 197);
-    }
-
-    table td {
-        padding: 5px;
-        height: 30px;
-        text-align: center;
-    }
-
-    table td.no {
-        font-weight: 600;
     }
 </style>
