@@ -3,10 +3,11 @@
     import PlanesMarket from "$lib/PlanesMarket.svelte";
     import UserRoutes from "$lib/UserRoutes.svelte";
     import UserPlanesFleet from "$lib/UserPlanesFleet.svelte";
+    import AnalisysDashboard from "$lib/AnalisysDashboard.svelte";
     import { clearMainAppFieldFromAnyComponents } from "$lib/api";
 
     let iconsSize = 28 as 24 | 32;
-    let statusDisplaying: "planes-market" | "user-routes" | "user fleet" | null = null;
+    let statusDisplaying: "planes-market" | "user-routes" | "user fleet" | "analisys dashboard" | null = null;
 
     /** Create planes market = add it to main application field */
     function createPlanesMarket(ev: Event) {
@@ -67,6 +68,25 @@
             statusDisplaying = null;
         }
     }
+
+    function createAnalisysDashboard(ev: Event) {
+        if (statusDisplaying != "analisys dashboard") {
+            // Clear other components spawned prior
+            clearMainAppFieldFromAnyComponents();
+
+            // Add analisys dashboard when user isn't already displaying it
+            statusDisplaying = "analisys dashboard";
+
+            const analisysDashboard = new AnalisysDashboard({
+                target: document.getElementsByClassName("map")[0]
+            });
+        }
+        else {
+            // Destroy planes market component and reset it status when user already is displaying it
+            clearMainAppFieldFromAnyComponents();
+            statusDisplaying = null;
+        }
+    }
 </script>
 
 <div class="options-stripe">
@@ -79,7 +99,7 @@
     <button id="routes" title="routes" on:click={createRoutesList}>
         <FlightInternational size={iconsSize}/>
     </button>
-    <button id="analisys" title="analisys">
+    <button id="analisys" title="analisys" on:click={createAnalisysDashboard}>
         <ChartLine size={iconsSize}/>
     </button>
 </div>
