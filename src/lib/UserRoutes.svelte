@@ -9,6 +9,7 @@
     import ProgressBar from "$lib/CustomElements/ProgressBar.svelte";
     import { fuelMarketPrices } from "$lib/storages/fuelmarket";
     import { page } from "$app/stores";
+    import type { HistoryData } from "$lib/storages/history";
 
     const history = $page.data.history;
     const iconsColor = "green";
@@ -209,8 +210,6 @@
         })
     }
 
-    console.log(history.content);
-
     /** When user click on "Departure" button then departured route is marked as departured */
     function departureRoute(it_id: number) {
         const route = $userData!.routes[it_id];
@@ -223,6 +222,7 @@
                 // Calculations and obtains for operation over fuel required to departure route
                 const requiredFuelAmountLitters = PlanesList.calculateFuelRequirements(route.distanceBetweenPointsKm, route.selectedAirplane);
                 const currentFuelPrice = fuelMarketPrices!.getCurrentPrice().price;
+                const balance_before = $userData!.balance;
 
                 // When user don't have enought fuel buy required amount of fuel to full fill it or when user has got enought then use it
                 if (($userData?.fuel || 0) < requiredFuelAmountLitters) {
@@ -246,11 +246,17 @@
                 }
     
                 // Add to user account balance income from tickets for route
-                $userData!.balance += route.pricePerSeat * (route.occupiedSeats as number);
+                const income = route.pricePerSeat * (route.occupiedSeats as number)
+                $userData!.balance += income;
 
-                // Add to history fuel consumption information
+                // Add to history fuel consumption information and account balance
+                const time = new Date();
+                const fuel_consumption = [...(history.content?.fuel_consumption || []), { time, amount: requiredFuelAmountLitters, state_after: $userData!.fuel || 0 }];
+                const balance = [...(history.content?.balance || []), { time, type: "route departure", amount: income, balance_after: $userData!.balance, balance_before } satisfies HistoryData["balance"][0]]
+
                 history.updateHistory({
-                    fuel_consumption: [...(history.content?.fuel_consumption || []), { time: new Date(), amount: requiredFuelAmountLitters, state: $userData!.fuel || 0 }]
+                    fuel_consumption,
+                    balance
                 });
                 
                 // Calculate route arrive date

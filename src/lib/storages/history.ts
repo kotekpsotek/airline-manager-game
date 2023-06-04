@@ -1,7 +1,11 @@
+type BalanceActType = "route departure"
+
 /** Representing history data of airline-manager */
 export interface HistoryData {
     /** Fuel consumption from user departures */
-    fuel_consumption: { time: Date, amount: number, state: number }[]
+    fuel_consumption: { time: Date, amount: number, state_after: number }[],
+    /** Informations about balance state */
+    balance: { time: Date, type: BalanceActType, amount: number, balance_after: number, balance_before: number }[]
 }
 
 type OldHistoryData = HistoryData | null;
@@ -24,16 +28,16 @@ export class History {
         if (!h) return h as null;
 
         // Return parsed history data
-        return JSON.parse(History.key_name);
+        return JSON.parse(h);
     }
 
     /** Update old history to new history */
-    public updateHistory(newHistory: HistoryData): OldHistoryData {
+    public updateHistory(newHistory: Partial<HistoryData>): OldHistoryData {
         // Keep old history data
         const old = this.content;
 
         // Rechange old history to new history
-        this.content = newHistory;
+        this.content = { ...(old || {}), ...(newHistory as Required<HistoryData>) };
 
         // Save updated history into user localStorage memory space
         this.saveHistory();
