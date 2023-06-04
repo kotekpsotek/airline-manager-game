@@ -9,6 +9,8 @@
     import CreateRoute from "$lib/CreateRoute.svelte";
     import { mapLoader, followInBackground } from "$lib/api";
     import { userData as data, type UserData, type Route } from "$lib/storages/interim";
+    import { History } from "$lib/storages/history";
+    import { page } from "$app/stores";
 
     // Follow some required things in background
     followInBackground();
@@ -102,6 +104,9 @@
         if (!($data)) creatingAirlineWhenNotExistsYet();
 
         // addMap();
+
+        // Load history
+        $page.data.history = new History();
     })
 </script>
 
