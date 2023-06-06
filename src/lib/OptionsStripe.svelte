@@ -90,16 +90,16 @@
 </script>
 
 <div class="options-stripe">
-    <button id="market" title="market" on:click={createPlanesMarket}>
+    <button id="market" title="market" aria-label="market-button" on:click={createPlanesMarket}>
         <Store size={iconsSize}/>
     </button>
-    <button id="fleet" title="fleet" on:click={createFleetList}>
+    <button id="fleet" title="fleet" aria-label="user-planes-fleet-button" on:click={createFleetList}>
         <Plane size={iconsSize}/>
     </button>
-    <button id="routes" title="routes" on:click={createRoutesList}>
+    <button id="routes" title="routes" aria-label="routes-button" on:click={createRoutesList}>
         <FlightInternational size={iconsSize}/>
     </button>
-    <button id="analisys" title="analisys" on:click={createAnalisysDashboard}>
+    <button id="analisys" title="analisys" aria-label="analisys-button" on:click={createAnalisysDashboard}>
         <ChartLine size={iconsSize}/>
     </button>
 </div>
